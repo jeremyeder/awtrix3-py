@@ -80,7 +80,20 @@ export TRIXCTL_PASSWORD="secret"
 
 ### Bash Completion (Linux/Mac)
 
-Enable tab completion for faster command entry:
+Enable tab completion for faster command entry.
+
+**macOS Prerequisites:**
+macOS ships with an old bash version (3.2 from 2007). For best completion experience, install modern bash via Homebrew:
+
+```bash
+# Install modern bash and completion support
+brew install bash bash-completion@2
+
+# Add to your shell profile (~/.bash_profile or ~/.zshrc):
+export PATH="/opt/homebrew/bin:$PATH"
+```
+
+**Installation:**
 
 ```bash
 # System-wide installation (requires sudo):
