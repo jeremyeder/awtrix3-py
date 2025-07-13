@@ -2,16 +2,90 @@
 """trixctl - CLI for Awtrix3 smart pixel clock"""
 
 import argparse
+import configparser
 import json
+import os
 import sys
+from pathlib import Path
 from awtrix3 import Awtrix3
 
 
+def generate_config():
+    """Generate a self-documented config file template"""
+    config_content = """# trixctl Configuration File
+# This file contains default settings for the trixctl command.
+# CLI arguments will override these settings.
+#
+# For security, passwords should be set via environment variable:
+# export TRIXCTL_PASSWORD="your_password"
+
+[device]
+# IP address or hostname of your Awtrix3 device
+# Example: host = 192.168.1.100
+host = 
+
+# Username for device authentication (if required)
+# Example: username = admin
+username = 
+
+[settings]
+# Default output format (json is currently the only option)
+output_format = json
+
+# Example usage:
+# ./trixctl notify "Hello World"    # Uses config file host
+# ./trixctl --host 192.168.1.50 notify "Hi"  # Override with CLI arg
+"""
+    
+    config_path = Path.home() / '.trixctl.conf'
+    
+    try:
+        with open(config_path, 'w') as f:
+            f.write(config_content)
+        # Set secure permissions (owner read/write only)
+        os.chmod(config_path, 0o600)
+        print(f"Generated config file: {config_path}")
+        print("Edit the file to set your default device settings.")
+        print("Use TRIXCTL_PASSWORD environment variable for password.")
+    except Exception as e:
+        print(f"Error generating config: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def load_config():
+    """Load configuration from ~/.trixctl.conf"""
+    config_path = Path.home() / '.trixctl.conf'
+    config = {}
+    
+    if config_path.exists():
+        try:
+            parser = configparser.ConfigParser()
+            parser.read(config_path)
+            
+            if 'device' in parser:
+                device = parser['device']
+                if device.get('host'):
+                    config['host'] = device.get('host')
+                if device.get('username'):
+                    config['username'] = device.get('username')
+                    
+        except Exception as e:
+            print(f"Warning: Error reading config file {config_path}: {e}", file=sys.stderr)
+    
+    return config
+
+
 def main():
-    parser = argparse.ArgumentParser(description='Control Awtrix3 device')
-    parser.add_argument('--host', required=True, help='Device IP address')
-    parser.add_argument('--username', help='Auth username')
-    parser.add_argument('--password', help='Auth password')
+    parser = argparse.ArgumentParser(
+        description='Control Awtrix3 device',
+        epilog='\nThanks to @blueforcer for Awtrix3 inspiration and @claude for implementation.\n',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument('--host', help='Device IP address (overrides config file)')
+    parser.add_argument('--username', help='Auth username (overrides config file)')
+    parser.add_argument('--password', help='Auth password (overrides config file and env var)')
+    parser.add_argument('--generate-config', action='store_true', 
+                       help='Generate a config file template at ~/.trixctl.conf')
     
     subparsers = parser.add_subparsers(dest='command', help='Commands')
     
@@ -37,17 +111,34 @@ def main():
     
     args = parser.parse_args()
     
+    # Handle generate-config command
+    if getattr(args, 'generate_config', False):
+        generate_config()
+        return
+    
     if not args.command:
         parser.print_help()
         sys.exit(1)
     
+    # Load config file
+    config = load_config()
+    
+    # Determine values with priority: CLI args > env vars > config file
+    host = args.host or config.get('host')
+    username = args.username or config.get('username')
+    password = args.password or os.environ.get('TRIXCTL_PASSWORD')
+    
+    if not host:
+        print("Error: No host specified. Use --host, set it in config file, or run --generate-config", file=sys.stderr)
+        sys.exit(1)
+    
     # Setup auth
     auth = None
-    if args.username and args.password:
-        auth = (args.username, args.password)
+    if username and password:
+        auth = (username, password)
     
     # Create client
-    client = Awtrix3(args.host, auth=auth)
+    client = Awtrix3(host, auth=auth)
     
     try:
         if args.command == 'notify':
