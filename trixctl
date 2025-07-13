@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+"""trixctl - CLI for Awtrix3 smart pixel clock"""
+
+import argparse
+import json
+import sys
+from awtrix3 import Awtrix3
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Control Awtrix3 device')
+    parser.add_argument('--host', required=True, help='Device IP address')
+    parser.add_argument('--username', help='Auth username')
+    parser.add_argument('--password', help='Auth password')
+    
+    subparsers = parser.add_subparsers(dest='command', help='Commands')
+    
+    # notify command
+    notify_parser = subparsers.add_parser('notify', help='Send notification')
+    notify_parser.add_argument('text', help='Notification text')
+    
+    # stats command
+    subparsers.add_parser('stats', help='Get device statistics')
+    
+    # power command
+    power_parser = subparsers.add_parser('power', help='Power control')
+    power_parser.add_argument('state', choices=['on', 'off'], help='Power state')
+    
+    # app command
+    app_parser = subparsers.add_parser('app', help='Create custom app')
+    app_parser.add_argument('name', help='App name')
+    app_parser.add_argument('text', help='App text')
+    
+    # sound command
+    sound_parser = subparsers.add_parser('sound', help='Play sound')
+    sound_parser.add_argument('name', help='Sound name')
+    
+    args = parser.parse_args()
+    
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
+    
+    # Setup auth
+    auth = None
+    if args.username and args.password:
+        auth = (args.username, args.password)
+    
+    # Create client
+    client = Awtrix3(args.host, auth=auth)
+    
+    try:
+        if args.command == 'notify':
+            result = client.notify(args.text)
+        elif args.command == 'stats':
+            result = client.stats()
+        elif args.command == 'power':
+            result = client.power(args.state == 'on')
+        elif args.command == 'app':
+            result = client.custom_app(args.name, args.text)
+        elif args.command == 'sound':
+            result = client.play_sound(args.name)
+        
+        if result:
+            print(json.dumps(result, indent=2))
+            
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

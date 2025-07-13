@@ -49,4 +49,29 @@ awtrix = Awtrix3("192.168.1.100", auth=("username", "password"))
 - `custom_app(name, text, **kwargs)` - Create/update custom app
 - `play_sound(name)` - Play a sound
 
+## CLI Usage
+
+Use the `trixctl` command for quick access:
+
+```bash
+# Send notification
+./trixctl --host 192.168.1.100 notify "Hello World!"
+
+# Get device stats
+./trixctl --host 192.168.1.100 stats
+
+# Power control
+./trixctl --host 192.168.1.100 power on
+./trixctl --host 192.168.1.100 power off
+
+# Create custom app
+./trixctl --host 192.168.1.100 app weather "25°C"
+
+# Play sound
+./trixctl --host 192.168.1.100 sound notification
+
+# With authentication
+./trixctl --host 192.168.1.100 --username user --password pass notify "Hello!"
+```
+
 That's it!
