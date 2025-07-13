@@ -8,19 +8,63 @@ A ridiculously simple Python client for the [Awtrix3](https://github.com/Bluefor
 pip install requests
 ```
 
-## Usage
+## CLI Usage
+
+Use `trixctl` for quick command-line control of your Awtrix3 device:
+
+### I want to send a quick message to my display
+```bash
+./trixctl --host 192.168.1.100 notify "Meeting in 5 minutes!"
+./trixctl --host 192.168.1.100 notify "Coffee ready ☕"
+```
+
+### I want to check if my device is working
+```bash
+./trixctl --host 192.168.1.100 stats
+```
+
+### I want to turn my display off at night
+```bash
+./trixctl --host 192.168.1.100 power off
+```
+
+### I want to turn my display back on
+```bash
+./trixctl --host 192.168.1.100 power on
+```
+
+### I want to display ongoing information (like temperature)
+```bash
+./trixctl --host 192.168.1.100 app temperature "72°F"
+./trixctl --host 192.168.1.100 app calendar "Meeting @ 3pm"
+```
+
+### I want to play a notification sound
+```bash
+./trixctl --host 192.168.1.100 sound notification
+./trixctl --host 192.168.1.100 sound alarm
+```
+
+### I need to authenticate with my device
+```bash
+./trixctl --host 192.168.1.100 --username admin --password secret notify "Hello!"
+```
+
+## Python Library Usage
+
+For developers who want to integrate Awtrix3 into their Python applications:
 
 ```python
 from awtrix3 import Awtrix3
 
 # Connect to your device
-awtrix = Awtrix3("192.168.1.100")  # Replace with your device IP
+awtrix = Awtrix3("192.168.1.100")
 
 # Send notification
 awtrix.notify("Hello World!")
 
 # Create custom app
-awtrix.custom_app("temp", "22°C", color="#FF0000")
+awtrix.custom_app("temperature", "72°F")
 
 # Get device stats
 stats = awtrix.stats()
@@ -33,7 +77,7 @@ awtrix.power(False)  # Turn off
 awtrix.power(True)   # Turn on
 ```
 
-## Authentication
+### Authentication
 
 If your device requires authentication:
 
@@ -41,37 +85,12 @@ If your device requires authentication:
 awtrix = Awtrix3("192.168.1.100", auth=("username", "password"))
 ```
 
-## Methods
+### Available Methods
 
 - `notify(text)` - Send simple text notification
 - `stats()` - Get device statistics  
 - `power(on=True)` - Power control
 - `custom_app(name, text, **kwargs)` - Create/update custom app
 - `play_sound(name)` - Play a sound
-
-## CLI Usage
-
-Use the `trixctl` command for quick access:
-
-```bash
-# Send notification
-./trixctl --host 192.168.1.100 notify "Hello World!"
-
-# Get device stats
-./trixctl --host 192.168.1.100 stats
-
-# Power control
-./trixctl --host 192.168.1.100 power on
-./trixctl --host 192.168.1.100 power off
-
-# Create custom app
-./trixctl --host 192.168.1.100 app weather "25°C"
-
-# Play sound
-./trixctl --host 192.168.1.100 sound notification
-
-# With authentication
-./trixctl --host 192.168.1.100 --username user --password pass notify "Hello!"
-```
 
 That's it!
