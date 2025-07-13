@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, "3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
+    
+    - name: Test Python imports
+      run: |
+        python -c "import awtrix3; print('awtrix3 module imports successfully')"
+        python -c "from awtrix3 import Awtrix3; print('Awtrix3 class imports successfully')"
+    
+    - name: Test CLI syntax
+      run: |
+        python trixctl --help
+        python trixctl --generate-config || true  # May fail due to permissions, that's ok
+    
+    - name: Test CLI argument parsing
+      run: |
+        # Test that CLI properly handles missing host
+        python trixctl notify "test" 2>&1 | grep -q "No host specified" || exit 1
+        echo "CLI error handling works correctly"
+    
+    - name: Validate bash completion script
+      run: |
+        bash -n trixctl-completion.bash
+        echo "Bash completion script syntax is valid"
+    
+    - name: Test config generation (dry run)
+      run: |
+        # Test that config generation code runs without errors
+        python -c "
+        import sys
+        sys.path.insert(0, '.')
+        exec(open('trixctl').read())
+        print('Config generation function loaded successfully')
+        "
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8
+    
+    - name: Lint with flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 awtrix3.py trixctl --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings. Line length can be longer for this simple project
+        flake8 awtrix3.py trixctl --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics

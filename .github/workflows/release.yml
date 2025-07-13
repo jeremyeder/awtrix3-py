@@ -1,0 +1,102 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
+    
+    - name: Generate example config file
+      run: |
+        # Create a clean example config file for the release
+        python trixctl --generate-config
+        cp ~/.trixctl.conf example-config.ini
+        echo "Generated example config file"
+    
+    - name: Create release assets
+      run: |
+        # Create a release bundle
+        mkdir -p release-assets
+        cp trixctl release-assets/
+        cp trixctl-completion.bash release-assets/
+        cp example-config.ini release-assets/
+        cp README.md release-assets/
+        cp awtrix3.py release-assets/
+        
+        # Make trixctl executable in the bundle
+        chmod +x release-assets/trixctl
+        
+        # Create a tarball
+        tar -czf awtrix3-py-${GITHUB_REF_NAME}.tar.gz -C release-assets .
+    
+    - name: Get version from tag
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+    
+    - name: Create Release
+      uses: actions/create-release@v1
+      id: create_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ steps.version.outputs.VERSION }}
+        body: |
+          ## What's New in ${{ steps.version.outputs.VERSION }}
+          
+          ### Installation
+          ```bash
+          wget https://github.com/jeremyeder/awtrix3-py/releases/download/${{ steps.version.outputs.VERSION }}/awtrix3-py-${{ steps.version.outputs.VERSION }}.tar.gz
+          tar -xzf awtrix3-py-${{ steps.version.outputs.VERSION }}.tar.gz
+          cd awtrix3-py-${{ steps.version.outputs.VERSION }}
+          pip install requests
+          ./trixctl --help
+          ```
+          
+          ### Quick Start
+          ```bash
+          # Generate config file
+          ./trixctl --generate-config
+          
+          # Edit ~/.trixctl.conf with your device IP
+          
+          # Send a notification
+          ./trixctl notify "Hello from trixctl!"
+          ```
+          
+          ### Files in this release:
+          - `trixctl` - Main CLI executable
+          - `awtrix3.py` - Python library
+          - `trixctl-completion.bash` - Bash completion script
+          - `example-config.ini` - Example configuration file
+          - `README.md` - Full documentation
+          
+          Thanks to @blueforcer for Awtrix3 and @claude for implementation! 🤖
+        draft: false
+        prerelease: false
+    
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./awtrix3-py-${{ steps.version.outputs.VERSION }}.tar.gz
+        asset_name: awtrix3-py-${{ steps.version.outputs.VERSION }}.tar.gz
+        asset_content_type: application/gzip
