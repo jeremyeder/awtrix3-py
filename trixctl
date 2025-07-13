@@ -75,6 +75,83 @@ def load_config():
     return config
 
 
+def format_stats(stats):
+    """Format stats output in a user-friendly way"""
+    if not stats:
+        return "No stats data received"
+    
+    # Common stats fields to format nicely
+    formatted_lines = []
+    handled_keys = set()
+    
+    # Battery status
+    if 'battery' in stats:
+        battery = stats['battery']
+        if isinstance(battery, (int, float)):
+            formatted_lines.append(f"Battery: {battery}%")
+        else:
+            formatted_lines.append(f"Battery: {battery}")
+        handled_keys.add('battery')
+    
+    # Uptime
+    if 'uptime' in stats:
+        uptime = stats['uptime']
+        if isinstance(uptime, (int, float)):
+            hours = int(uptime // 3600)
+            minutes = int((uptime % 3600) // 60)
+            formatted_lines.append(f"Uptime: {hours}h {minutes}m")
+        else:
+            formatted_lines.append(f"Uptime: {uptime}")
+        handled_keys.add('uptime')
+    
+    # Memory/RAM
+    for key in ['ram', 'memory', 'free_memory']:
+        if key in stats:
+            value = stats[key]
+            if isinstance(value, (int, float)):
+                formatted_lines.append(f"Memory: {value} KB")
+            else:
+                formatted_lines.append(f"Memory: {value}")
+            handled_keys.add(key)
+            break
+    
+    # Temperature  
+    if 'temp' in stats:
+        temp = stats['temp']
+        if isinstance(temp, (int, float)):
+            formatted_lines.append(f"Temperature: {temp}°C")
+        else:
+            formatted_lines.append(f"Temperature: {temp}")
+        handled_keys.add('temp')
+    
+    # WiFi signal
+    for key in ['wifi_signal', 'rssi', 'signal']:
+        if key in stats:
+            value = stats[key]
+            formatted_lines.append(f"WiFi Signal: {value} dBm")
+            handled_keys.add(key)
+            break
+    
+    # Version/firmware
+    for key in ['version', 'firmware', 'fw_version']:
+        if key in stats:
+            formatted_lines.append(f"Version: {stats[key]}")
+            handled_keys.add(key)
+            break
+    
+    # Handle any remaining fields
+    remaining = {k: v for k, v in stats.items() if k not in handled_keys}
+    
+    if formatted_lines:
+        output = "\n".join(formatted_lines)
+        if remaining:
+            output += "\n\nAdditional Data:\n" + json.dumps(remaining, indent=2)
+        return output
+    else:
+        # No known fields, fall back to formatted JSON
+        return json.dumps(stats, indent=2)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Control Awtrix3 device',
@@ -153,7 +230,10 @@ def main():
             result = client.play_sound(args.name)
         
         if result:
-            print(json.dumps(result, indent=2))
+            if args.command == 'stats':
+                print(format_stats(result))
+            else:
+                print(json.dumps(result, indent=2))
             
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
