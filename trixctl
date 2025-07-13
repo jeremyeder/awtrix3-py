@@ -10,6 +10,73 @@ from pathlib import Path
 from awtrix3 import Awtrix3
 
 
+def format_stats(stats_data):
+    """Format stats data in a user-friendly way"""
+    if not stats_data or not isinstance(stats_data, dict):
+        return json.dumps(stats_data, indent=2)
+    
+    output = []
+    known_fields = set()
+    
+    # Display common fields in a user-friendly format
+    if 'battery' in stats_data:
+        output.append(f"Battery: {stats_data['battery']}%")
+        known_fields.add('battery')
+    
+    if 'uptime' in stats_data:
+        uptime_seconds = stats_data['uptime']
+        if isinstance(uptime_seconds, (int, float)):
+            hours = int(uptime_seconds // 3600)
+            minutes = int((uptime_seconds % 3600) // 60)
+            if hours > 0:
+                output.append(f"Uptime: {hours}h {minutes}m")
+            else:
+                output.append(f"Uptime: {minutes}m")
+        else:
+            output.append(f"Uptime: {uptime_seconds}")
+        known_fields.add('uptime')
+    
+    if 'ram' in stats_data:
+        output.append(f"Memory: {stats_data['ram']} KB")
+        known_fields.add('ram')
+    
+    if 'temp' in stats_data:
+        output.append(f"Temperature: {stats_data['temp']}°C")
+        known_fields.add('temp')
+    
+    if 'wifi_signal' in stats_data:
+        output.append(f"WiFi Signal: {stats_data['wifi_signal']} dBm")
+        known_fields.add('wifi_signal')
+    
+    if 'version' in stats_data:
+        output.append(f"Version: {stats_data['version']}")
+        known_fields.add('version')
+    
+    if 'firmware' in stats_data:
+        output.append(f"Firmware: {stats_data['firmware']}")
+        known_fields.add('firmware')
+    
+    if 'ip' in stats_data:
+        output.append(f"IP Address: {stats_data['ip']}")
+        known_fields.add('ip')
+    
+    if 'hostname' in stats_data:
+        output.append(f"Hostname: {stats_data['hostname']}")
+        known_fields.add('hostname')
+    
+    if 'ssid' in stats_data:
+        output.append(f"WiFi SSID: {stats_data['ssid']}")
+        known_fields.add('ssid')
+    
+    # Handle any unknown fields
+    additional_data = {k: v for k, v in stats_data.items() if k not in known_fields}
+    if additional_data:
+        output.append("\nAdditional Data:")
+        output.append(json.dumps(additional_data, indent=2))
+    
+    return '\n'.join(output) if output else json.dumps(stats_data, indent=2)
+
+
 def generate_config():
     """Generate a self-documented config file template"""
     config_content = """# trixctl Configuration File
@@ -153,7 +220,10 @@ def main():
             result = client.play_sound(args.name)
         
         if result:
-            print(json.dumps(result, indent=2))
+            if args.command == 'stats':
+                print(format_stats(result))
+            else:
+                print(json.dumps(result, indent=2))
             
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
