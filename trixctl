@@ -176,6 +176,16 @@ def main():
     sound_parser = subparsers.add_parser('sound', help='Play sound')
     sound_parser.add_argument('name', help='Sound name')
     
+    # clock command
+    clock_parser = subparsers.add_parser('clock', help='Configure minimal clock display')
+    clock_parser.add_argument('--12hr', action='store_true', help='Use 12-hour format (default: 24-hour)')
+    clock_parser.add_argument('--seconds', action='store_true', help='Show seconds in time display')
+    clock_parser.add_argument('--full', action='store_true', help='Keep non-essential features enabled')
+    
+    # settings command
+    settings_parser = subparsers.add_parser('settings', help='Configure device settings with JSON payload')
+    settings_parser.add_argument('payload', help='JSON settings payload')
+    
     args = parser.parse_args()
     
     # Handle generate-config command
@@ -218,6 +228,21 @@ def main():
             result = client.custom_app(args.name, args.text)
         elif args.command == 'sound':
             result = client.play_sound(args.name)
+        elif args.command == 'clock':
+            # Configure minimal clock with specified options
+            format_24hr = not args.__dict__.get('12hr', False)  # Default to 24hr unless --12hr specified
+            show_seconds = args.seconds
+            minimal = not args.full  # Default to minimal unless --full specified
+            result = client.clock_profile(format_24hr=format_24hr, show_seconds=show_seconds, minimal=minimal)
+        elif args.command == 'settings':
+            # Parse JSON payload and apply settings
+            import json
+            try:
+                settings_data = json.loads(args.payload)
+                result = client.configure_settings(settings_data)
+            except json.JSONDecodeError as e:
+                print(f"Error: Invalid JSON payload: {e}", file=sys.stderr)
+                sys.exit(1)
         
         if result:
             if args.command == 'stats':

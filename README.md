@@ -68,6 +68,39 @@ export TRIXCTL_PASSWORD="your_password"
 ./trixctl sound alarm
 ```
 
+### I want to configure my display as a simple clock
+
+Turn your Awtrix3 into a minimal, distraction-free clock:
+
+```bash
+# Strip everything down to a basic 24-hour clock (14:30)
+./trixctl clock
+
+# 12-hour format with AM/PM (2:30 PM)
+./trixctl clock --12hr
+
+# Show seconds in the time display (14:30:45)
+./trixctl clock --seconds
+
+# 12-hour format with seconds (2:30:45 PM)
+./trixctl clock --12hr --seconds
+
+# Keep other features enabled (weather, apps, etc.)
+./trixctl clock --full
+```
+
+### I want to apply custom device settings
+
+Send raw JSON configuration to your device:
+
+```bash
+# Set custom brightness and time format
+./trixctl settings '{"brightness": 80, "timeFormat": "HH:mm"}'
+
+# Disable multiple features at once
+./trixctl settings '{"showWeather": false, "showBattery": false, "autoTransition": false}'
+```
+
 ### I need to authenticate with my device
 ```bash
 # Set username in config file and password via environment:
@@ -125,6 +158,12 @@ awtrix.play_sound("notification")
 # Power control
 awtrix.power(False)  # Turn off
 awtrix.power(True)   # Turn on
+
+# Configure as minimal clock
+awtrix.clock_profile(format_24hr=True, show_seconds=False, minimal=True)
+
+# Custom settings
+awtrix.configure_settings({"brightness": 60, "showWeather": False})
 ```
 
 ### Authentication
@@ -142,6 +181,9 @@ awtrix = Awtrix3("192.168.1.100", auth=("username", "password"))
 - `power(on=True)` - Power control
 - `custom_app(name, text, **kwargs)` - Create/update custom app
 - `play_sound(name)` - Play a sound
+- `get_settings()` - Get current device settings
+- `configure_settings(settings)` - Apply custom settings via JSON payload
+- `clock_profile(format_24hr=True, show_seconds=False, minimal=True)` - Configure minimal clock display
 
 ## Attribution
 
