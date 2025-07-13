@@ -5,6 +5,8 @@ A ridiculously simple Python client for the [Awtrix3](https://github.com/Bluefor
 ## Installation
 
 ```bash
+git clone https://github.com/jeremyeder/awtrix3-py.git
+cd awtrix3-py
 pip install requests
 ```
 
