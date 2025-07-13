@@ -20,7 +20,7 @@ _trixctl_completion() {
     opts="--host --username --password --generate-config --help"
     
     # Commands
-    commands="notify stats power app sound"
+    commands="notify stats power app sound backup restore"
     
     # If we're completing the first argument after trixctl
     if [[ ${COMP_CWORD} -eq 1 ]]; then
@@ -57,6 +57,22 @@ _trixctl_completion() {
             ;;
         stats)
             # stats takes no arguments
+            ;;
+        backup)
+            # Complete with JSON file extension and options
+            if [[ ${cur} == -* ]]; then
+                COMPREPLY=( $(compgen -W "--include-stats" -- ${cur}) )
+            else
+                COMPREPLY=( $(compgen -f -X '!*.json' -- ${cur}) )
+            fi
+            ;;
+        restore)
+            # Complete with JSON files and options
+            if [[ ${cur} == -* ]]; then
+                COMPREPLY=( $(compgen -W "--dry-run --force" -- ${cur}) )
+            else
+                COMPREPLY=( $(compgen -f -X '!*.json' -- ${cur}) )
+            fi
             ;;
         *)
             # Default to global options

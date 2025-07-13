@@ -68,6 +68,18 @@ export TRIXCTL_PASSWORD="your_password"
 ./trixctl sound alarm
 ```
 
+### I want to backup my device settings
+```bash
+# Create backup file
+./trixctl backup my_device.json
+
+# Preview what a restore would do
+./trixctl restore my_device.json --dry-run
+
+# Restore settings from backup
+./trixctl restore my_device.json
+```
+
 ### I need to authenticate with my device
 ```bash
 # Set username in config file and password via environment:
@@ -125,6 +137,11 @@ awtrix.play_sound("notification")
 # Power control
 awtrix.power(False)  # Turn off
 awtrix.power(True)   # Turn on
+
+# Backup and restore settings
+awtrix.backup_settings("backup.json")  # Save to file
+settings = awtrix.get_settings()       # Get current settings
+awtrix.restore_settings("backup.json") # Restore from file
 ```
 
 ### Authentication
@@ -142,6 +159,9 @@ awtrix = Awtrix3("192.168.1.100", auth=("username", "password"))
 - `power(on=True)` - Power control
 - `custom_app(name, text, **kwargs)` - Create/update custom app
 - `play_sound(name)` - Play a sound
+- `get_settings()` - Get current device settings
+- `backup_settings(filepath=None)` - Backup device settings to file or dict
+- `restore_settings(backup_data)` - Restore settings from backup file or dict
 
 ## Attribution
 

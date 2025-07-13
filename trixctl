@@ -176,6 +176,17 @@ def main():
     sound_parser = subparsers.add_parser('sound', help='Play sound')
     sound_parser.add_argument('name', help='Sound name')
     
+    # backup command
+    backup_parser = subparsers.add_parser('backup', help='Backup device settings')
+    backup_parser.add_argument('filename', help='Backup filename (JSON)')
+    backup_parser.add_argument('--include-stats', action='store_true', help='Include device stats in backup')
+    
+    # restore command
+    restore_parser = subparsers.add_parser('restore', help='Restore device settings')
+    restore_parser.add_argument('filename', help='Backup filename (JSON)')
+    restore_parser.add_argument('--dry-run', action='store_true', help='Show what would be restored without applying')
+    restore_parser.add_argument('--force', action='store_true', help='Restore without confirmation')
+    
     args = parser.parse_args()
     
     # Handle generate-config command
@@ -218,10 +229,64 @@ def main():
             result = client.custom_app(args.name, args.text)
         elif args.command == 'sound':
             result = client.play_sound(args.name)
+        elif args.command == 'backup':
+            # Create backup
+            print(f"Creating backup of device settings...")
+            backup_file = client.backup_settings(args.filename)
+            print(f"Backup saved to: {backup_file}")
+            
+            if args.include_stats:
+                print("Backup includes device statistics")
+            
+            result = {"status": "success", "backup_file": backup_file}
+            
+        elif args.command == 'restore':
+            import json
+            
+            # Load and validate backup file
+            try:
+                with open(args.filename, 'r') as f:
+                    backup_data = json.load(f)
+            except FileNotFoundError:
+                print(f"Error: Backup file '{args.filename}' not found", file=sys.stderr)
+                sys.exit(1)
+            except json.JSONDecodeError as e:
+                print(f"Error: Invalid JSON in backup file - {e}", file=sys.stderr)
+                sys.exit(1)
+            
+            # Show what will be restored
+            if 'backup_timestamp' in backup_data:
+                print(f"Backup created: {backup_data['backup_timestamp']}")
+            if 'device_stats' in backup_data and 'version' in backup_data['device_stats']:
+                print(f"Backup from device version: {backup_data['device_stats'].get('version', 'unknown')}")
+            
+            settings_count = len(backup_data.get('settings', {}))
+            print(f"Settings to restore: {settings_count} items")
+            
+            if args.dry_run:
+                print("\n--- DRY RUN MODE - Nothing will be changed ---")
+                print("Settings that would be restored:")
+                for key in backup_data.get('settings', {}):
+                    print(f"  - {key}")
+                result = {"status": "dry_run", "settings_count": settings_count}
+            else:
+                # Confirm restoration unless --force is used
+                if not args.force:
+                    confirm = input(f"\nRestore {settings_count} settings to device? (y/N): ")
+                    if confirm.lower() not in ['y', 'yes']:
+                        print("Restore cancelled")
+                        sys.exit(0)
+                
+                print("Restoring settings...")
+                result = client.restore_settings(backup_data)
+                print("Settings restored successfully!")
         
         if result:
             if args.command == 'stats':
                 print(format_stats(result))
+            elif args.command in ['backup', 'restore']:
+                # Backup/restore commands handle their own output
+                pass
             else:
                 print(json.dumps(result, indent=2))
             

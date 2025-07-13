@@ -18,5 +18,17 @@ print(f"Battery: {stats.get('battery', 'N/A')}%")
 # Play a sound
 awtrix.play_sound("notification")
 
+# Backup device settings
+print("Creating backup...")
+backup_data = awtrix.backup_settings("device_backup.json")
+print(f"Backup saved to: device_backup.json")
+
+# You can also get settings without saving to file
+settings = awtrix.get_settings()
+print(f"Current device has {len(settings)} settings configured")
+
+# Restore from backup (example - don't actually restore in this demo)
+# awtrix.restore_settings("device_backup.json")
+
 # Turn off the display
 awtrix.power(False)
