@@ -10,6 +10,53 @@ from pathlib import Path
 from awtrix3 import Awtrix3
 
 
+def format_stats(stats):
+    """Format stats output for better readability"""
+    if not stats or not isinstance(stats, dict):
+        return json.dumps(stats, indent=2) if stats else "No data"
+    
+    formatted_lines = []
+    handled_keys = set()
+    
+    # Common fields with nice formatting
+    field_formatters = {
+        'battery': lambda x: f"Battery: {x}%",
+        'bat': lambda x: f"Battery: {x}%",
+        'uptime': lambda x: f"Uptime: {x // 3600}h {(x % 3600) // 60}m",
+        'ram': lambda x: f"Memory: {x} KB",
+        'memory': lambda x: f"Memory: {x} KB",
+        'temp': lambda x: f"Temperature: {x}°C",
+        'temperature': lambda x: f"Temperature: {x}°C",
+        'wifi_signal': lambda x: f"WiFi Signal: {x} dBm",
+        'rssi': lambda x: f"WiFi Signal: {x} dBm",
+        'version': lambda x: f"Version: {x}",
+        'firmware': lambda x: f"Firmware: {x}",
+        'ip': lambda x: f"IP Address: {x}",
+        'hostname': lambda x: f"Hostname: {x}",
+        'ssid': lambda x: f"WiFi SSID: {x}",
+    }
+    
+    # Process known fields first
+    for key, formatter in field_formatters.items():
+        if key in stats:
+            try:
+                formatted_lines.append(formatter(stats[key]))
+                handled_keys.add(key)
+            except:
+                # If formatting fails, we'll handle it in the additional data section
+                pass
+    
+    # Handle any remaining fields as "Additional Data"
+    remaining_data = {k: v for k, v in stats.items() if k not in handled_keys}
+    if remaining_data:
+        if formatted_lines:
+            formatted_lines.append("")  # Add spacing
+        formatted_lines.append("Additional Data:")
+        formatted_lines.append(json.dumps(remaining_data, indent=2))
+    
+    return "\n".join(formatted_lines) if formatted_lines else json.dumps(stats, indent=2)
+
+
 def generate_config():
     """Generate a self-documented config file template"""
     config_content = """# trixctl Configuration File
@@ -145,6 +192,9 @@ def main():
             result = client.notify(args.text)
         elif args.command == 'stats':
             result = client.stats()
+            if result:
+                print(format_stats(result))
+                return
         elif args.command == 'power':
             result = client.power(args.state == 'on')
         elif args.command == 'app':
