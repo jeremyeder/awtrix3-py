@@ -82,6 +82,18 @@ export TRIXCTL_PASSWORD="secret"
 
 Enable tab completion for faster command entry:
 
+#### Prerequisites
+
+**macOS users**: The system bash is too old for completion features. Install modern bash via Homebrew:
+```bash
+brew install bash
+# Then restart your terminal or source your shell config
+```
+
+**Linux users**: Usually works with the system bash.
+
+#### Installation
+
 ```bash
 # System-wide installation (requires sudo):
 sudo cp trixctl-completion.bash /etc/bash_completion.d/trixctl
