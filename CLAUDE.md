@@ -58,3 +58,18 @@ chmod +x trixctl  # Already done in repo
 - **Direct API mapping** - No abstraction layers, 1:1 method-to-endpoint mapping
 - **PEP8 compliance** - Standard Python formatting and naming conventions
 - **User journey documentation** - README organized around "I want to..." scenarios
+
+## Working Guidelines
+
+- When picking up a GitHub issue, update its status to "In progress" to indicate active work
+- Whenever I ask to pick up a GitHub issue, make sure to update its status to In progress so I know you are working on it
+- Once ready for review, move the issue to In Review status
+- NEVER move an issue to Done or merge a PR myself
+- Whenever I ask to review the backlog, assume I want to:
+  * Move any ready-to-execute issues to Ready status
+  * Comment and tag the user when backlog issues are not ready for execution
+- Always update the issue status when starting work:
+  * If an issue is in Backlog, move it to Ready first
+  * Then move the issue to In Progress
+  * When ready for review, move to In Review
+  * Wait for human review and further instructions before closing or merging

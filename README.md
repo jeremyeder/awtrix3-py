@@ -68,6 +68,27 @@ export TRIXCTL_PASSWORD="your_password"
 ./trixctl sound alarm
 ```
 
+### I want to turn my device into a simple clock
+```bash
+# Minimal 24-hour clock (no seconds)
+./trixctl clock
+
+# 12-hour format with seconds
+./trixctl clock --12hr --seconds
+
+# Keep all features but configure as clock
+./trixctl clock --full --seconds
+```
+
+### I want to configure custom device settings
+```bash
+# Set brightness and time format
+./trixctl settings '{"brightness": 60, "timeFormat": "HH:mm:ss"}'
+
+# Disable specific features
+./trixctl settings '{"showWeekday": false, "showCalendar": false}'
+```
+
 ### I need to authenticate with my device
 ```bash
 # Set username in config file and password via environment:
@@ -138,6 +159,12 @@ awtrix.play_sound("notification")
 # Power control
 awtrix.power(False)  # Turn off
 awtrix.power(True)   # Turn on
+
+# Configure as minimal clock
+awtrix.clock_profile(format_24hr=True, show_seconds=False)
+
+# Custom device settings
+awtrix.configure_settings({"brightness": 80, "timeFormat": "HH:mm"})
 ```
 
 ### Authentication
@@ -155,6 +182,8 @@ awtrix = Awtrix3("192.168.1.100", auth=("username", "password"))
 - `power(on=True)` - Power control
 - `custom_app(name, text, **kwargs)` - Create/update custom app
 - `play_sound(name)` - Play a sound
+- `clock_profile(format_24hr=True, show_seconds=False, minimal=True)` - Configure minimal clock
+- `configure_settings(settings)` - Update device settings with JSON payload
 
 ## Attribution
 

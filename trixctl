@@ -109,6 +109,16 @@ def main():
     sound_parser = subparsers.add_parser('sound', help='Play sound')
     sound_parser.add_argument('name', help='Sound name')
     
+    # clock command
+    clock_parser = subparsers.add_parser('clock', help='Configure minimal clock profile')
+    clock_parser.add_argument('--12hr', action='store_true', help='Use 12-hour format (default: 24-hour)')
+    clock_parser.add_argument('--seconds', action='store_true', help='Show seconds in time display')
+    clock_parser.add_argument('--full', action='store_true', help='Keep all features (default: minimal mode)')
+    
+    # settings command
+    settings_parser = subparsers.add_parser('settings', help='Configure device settings')
+    settings_parser.add_argument('json_payload', help='JSON settings payload')
+    
     args = parser.parse_args()
     
     # Handle generate-config command
@@ -151,6 +161,20 @@ def main():
             result = client.custom_app(args.name, args.text)
         elif args.command == 'sound':
             result = client.play_sound(args.name)
+        elif args.command == 'clock':
+            result = client.clock_profile(
+                format_24hr=not getattr(args, '12hr', False),
+                show_seconds=args.seconds,
+                minimal=not args.full
+            )
+        elif args.command == 'settings':
+            import json
+            try:
+                settings_data = json.loads(args.json_payload)
+                result = client.configure_settings(settings_data)
+            except json.JSONDecodeError as e:
+                print(f"Error: Invalid JSON payload - {e}", file=sys.stderr)
+                sys.exit(1)
         
         if result:
             print(json.dumps(result, indent=2))
