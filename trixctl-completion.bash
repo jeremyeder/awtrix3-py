@@ -20,7 +20,7 @@ _trixctl_completion() {
     opts="--host --username --password --generate-config --help"
     
     # Commands
-    commands="notify stats power app sound"
+    commands="notify stats power app sound clock settings"
     
     # If we're completing the first argument after trixctl
     if [[ ${COMP_CWORD} -eq 1 ]]; then
@@ -52,11 +52,17 @@ _trixctl_completion() {
                 COMPREPLY=( $(compgen -W "on off" -- ${cur}) )
             fi
             ;;
-        notify|app|sound)
+        notify|app|sound|settings)
             # These commands take text arguments - no specific completion
             ;;
         stats)
             # stats takes no arguments
+            ;;
+        clock)
+            # Complete clock options
+            if [[ ${cur} == -* ]]; then
+                COMPREPLY=( $(compgen -W "--12hr --seconds --full" -- ${cur}) )
+            fi
             ;;
         *)
             # Default to global options
