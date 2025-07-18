@@ -58,3 +58,42 @@ chmod +x trixctl  # Already done in repo
 - **Direct API mapping** - No abstraction layers, 1:1 method-to-endpoint mapping
 - **PEP8 compliance** - Standard Python formatting and naming conventions
 - **User journey documentation** - README organized around "I want to..." scenarios
+
+## GitHub Workflow Guidelines
+
+### Issue Status Management
+- **Only Jeremy moves issues from Backlog to Ready. Claude only works on Ready issues unless explicitly directed otherwise.**
+- Claude workflow: Ready → In Progress → In Review (stop here)
+- When picking up a Ready issue, immediately assign yourself and update to "In Progress"
+- When work is complete, move to "In Review" and wait for Jeremy's review
+- NEVER move issues to Done or merge PRs - Jeremy handles final approval
+- **Always close issues when the PR is merged** (not before)
+
+### Issue Creation
+- **Claude can create issues to capture great ideas discovered during work. Use sparingly - only for genuinely valuable enhancements or important problems found. Jeremy will triage all new issues.**
+
+### Commit Message Standards
+- **Bottom Line Up Front (BLUF)** - Start with concise action summary
+- Keep first line under 50 characters for readability  
+- Use imperative mood ("Add feature" not "Added feature")
+- Include "Addresses #X" to link commits to issues
+- Follow with detailed explanation if needed
+
+### Communication Patterns
+- Comment on issues with progress updates and completion summaries
+- Tag @jeremyeder appropriately for reviews
+- Use checkmarks (✅) and code examples in status updates
+- Provide clear "ready for review" messaging
+
+### Testing and Validation
+- Always test syntax after changes (imports, CLI help, bash completion)
+- Validate bash completion with `bash -n`
+- Test CLI arguments and help text before committing
+
+### Documentation Requirements
+- Update README with new functionality examples
+- Create dedicated guides for complex features
+- Keep documentation in sync with code changes
+
+### Development Workflow
+- You always use feature branches.
