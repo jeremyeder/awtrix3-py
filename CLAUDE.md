@@ -13,7 +13,7 @@ This is a minimal Python client for the Awtrix3 smart pixel clock with dual inte
 ### Core Components
 
 **awtrix3.py** - Single-class HTTP client library
-- `Awtrix3` class wraps 5 core API endpoints: notify, stats, power, custom_app, play_sound
+- `Awtrix3` class wraps 7 core API endpoints: notify, stats, power, custom_app, delete_app, list_apps, play_sound
 - Simple constructor: `Awtrix3(host, auth=None)`
 - All methods use `requests` library for HTTP calls to `http://{host}/api/*`
 - Methods return JSON responses or None, raise exceptions on HTTP errors
@@ -22,7 +22,7 @@ This is a minimal Python client for the Awtrix3 smart pixel clock with dual inte
 - Uses `argparse` with subcommands mapping 1:1 to library methods
 - Global `--host` (required), `--username`, `--password` options
 - Imports and instantiates `Awtrix3` class, prints JSON results
-- Commands: `notify TEXT`, `stats`, `power on|off`, `app NAME TEXT`, `sound NAME`
+- Commands: `notify TEXT`, `stats`, `power on|off`, `app create|delete|list`, `sound NAME`, `backup|restore`
 
 ### Dependencies
 - **requests** - Only external dependency for HTTP client functionality
@@ -40,7 +40,7 @@ pip install requests
 ### Testing
 ```bash
 # Test CLI (requires real Awtrix3 device)
-./trixctl --host 192.168.1.100 stats
+trixctl --host 192.168.1.128 stats
 
 # Test library
 python example.py  # Edit IP address first

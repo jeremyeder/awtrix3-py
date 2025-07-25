@@ -1,0 +1,94 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "awtrix3"
+version = "0.1.0"
+description = "A ridiculously simple Python client for the Awtrix3 smart pixel clock"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Jeremy Eder", email = "jeremy@jeremyeder.com"}
+]
+keywords = ["awtrix3", "smart", "pixel", "clock", "led", "display", "iot"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Home Automation",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Hardware",
+]
+dependencies = [
+    "requests>=2.25.0",
+]
+requires-python = ">=3.12"
+
+[project.urls]
+Homepage = "https://github.com/jeremyeder/awtrix3-py"
+Repository = "https://github.com/jeremyeder/awtrix3-py"
+Issues = "https://github.com/jeremyeder/awtrix3-py/issues"
+
+[project.scripts]
+trixctl = "awtrix3:main"
+
+[project.optional-dependencies]
+dev = [
+    "black>=22.0.0",
+    "flake8>=4.0.0",
+    "isort>=5.10.0",
+    "pytest>=7.0.0",
+    "pytest-mock>=3.10.0",
+]
+
+[tool.setuptools]
+py-modules = ["awtrix3"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["awtrix3*"]
+exclude = ["tests*", "venv*"]
+
+[tool.black]
+line-length = 88
+target-version = ['py37']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]

@@ -2,233 +2,214 @@
 """trixctl - CLI for Awtrix3 smart pixel clock"""
 
 import argparse
-import configparser
-import json
 import os
 import sys
-from pathlib import Path
-from awtrix3 import Awtrix3
 
-
-def format_stats(stats_data):
-    """Format stats data in a user-friendly way"""
-    if not stats_data or not isinstance(stats_data, dict):
-        return json.dumps(stats_data, indent=2)
-    
-    output = []
-    known_fields = set()
-    
-    # Display common fields in a user-friendly format
-    if 'battery' in stats_data:
-        output.append(f"Battery: {stats_data['battery']}%")
-        known_fields.add('battery')
-    
-    if 'uptime' in stats_data:
-        uptime_seconds = stats_data['uptime']
-        if isinstance(uptime_seconds, (int, float)):
-            hours = int(uptime_seconds // 3600)
-            minutes = int((uptime_seconds % 3600) // 60)
-            if hours > 0:
-                output.append(f"Uptime: {hours}h {minutes}m")
-            else:
-                output.append(f"Uptime: {minutes}m")
-        else:
-            output.append(f"Uptime: {uptime_seconds}")
-        known_fields.add('uptime')
-    
-    if 'ram' in stats_data:
-        output.append(f"Memory: {stats_data['ram']} KB")
-        known_fields.add('ram')
-    
-    if 'temp' in stats_data:
-        output.append(f"Temperature: {stats_data['temp']}°C")
-        known_fields.add('temp')
-    
-    if 'wifi_signal' in stats_data:
-        output.append(f"WiFi Signal: {stats_data['wifi_signal']} dBm")
-        known_fields.add('wifi_signal')
-    
-    if 'version' in stats_data:
-        output.append(f"Version: {stats_data['version']}")
-        known_fields.add('version')
-    
-    if 'firmware' in stats_data:
-        output.append(f"Firmware: {stats_data['firmware']}")
-        known_fields.add('firmware')
-    
-    if 'ip' in stats_data:
-        output.append(f"IP Address: {stats_data['ip']}")
-        known_fields.add('ip')
-    
-    if 'hostname' in stats_data:
-        output.append(f"Hostname: {stats_data['hostname']}")
-        known_fields.add('hostname')
-    
-    if 'ssid' in stats_data:
-        output.append(f"WiFi SSID: {stats_data['ssid']}")
-        known_fields.add('ssid')
-    
-    # Handle any unknown fields
-    additional_data = {k: v for k, v in stats_data.items() if k not in known_fields}
-    if additional_data:
-        output.append("\nAdditional Data:")
-        output.append(json.dumps(additional_data, indent=2))
-    
-    return '\n'.join(output) if output else json.dumps(stats_data, indent=2)
-
-
-def generate_config():
-    """Generate a self-documented config file template"""
-    config_content = """# trixctl Configuration File
-# This file contains default settings for the trixctl command.
-# CLI arguments will override these settings.
-#
-# For security, passwords should be set via environment variable:
-# export TRIXCTL_PASSWORD="your_password"
-
-[device]
-# IP address or hostname of your Awtrix3 device
-# Example: host = 192.168.1.100
-host = 
-
-# Username for device authentication (if required)
-# Example: username = admin
-username = 
-
-[settings]
-# Default output format (json is currently the only option)
-output_format = json
-
-# Example usage:
-# ./trixctl notify "Hello World"    # Uses config file host
-# ./trixctl --host 192.168.1.50 notify "Hi"  # Override with CLI arg
-"""
-    
-    config_path = Path.home() / '.trixctl.conf'
-    
-    try:
-        with open(config_path, 'w') as f:
-            f.write(config_content)
-        # Set secure permissions (owner read/write only)
-        os.chmod(config_path, 0o600)
-        print(f"Generated config file: {config_path}")
-        print("Edit the file to set your default device settings.")
-        print("Use TRIXCTL_PASSWORD environment variable for password.")
-    except Exception as e:
-        print(f"Error generating config: {e}", file=sys.stderr)
-        sys.exit(1)
-
-
-def load_config():
-    """Load configuration from ~/.trixctl.conf"""
-    config_path = Path.home() / '.trixctl.conf'
-    config = {}
-    
-    if config_path.exists():
-        try:
-            parser = configparser.ConfigParser()
-            parser.read(config_path)
-            
-            if 'device' in parser:
-                device = parser['device']
-                if device.get('host'):
-                    config['host'] = device.get('host')
-                if device.get('username'):
-                    config['username'] = device.get('username')
-                    
-        except Exception as e:
-            print(f"Warning: Error reading config file {config_path}: {e}", file=sys.stderr)
-    
-    return config
+from awtrix3 import Awtrix3, format_stats, generate_config, load_config
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Control Awtrix3 device',
-        epilog='\nThanks to @blueforcer for Awtrix3 inspiration and @claude for implementation.\n',
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        description="Control Awtrix3 device",
+        epilog=(
+            "\nThanks to @blueforcer for Awtrix3 inspiration "
+            "and @claude for implementation.\n"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument('--host', help='Device IP address (overrides config file)')
-    parser.add_argument('--username', help='Auth username (overrides config file)')
-    parser.add_argument('--password', help='Auth password (overrides config file and env var)')
-    parser.add_argument('--generate-config', action='store_true', 
-                       help='Generate a config file template at ~/.trixctl.conf')
-    
-    subparsers = parser.add_subparsers(dest='command', help='Commands')
-    
+    parser.add_argument("--host", help="Device IP address (overrides config file)")
+    parser.add_argument("--username", help="Auth username (overrides config file)")
+    parser.add_argument(
+        "--password", help="Auth password (overrides config file and env var)"
+    )
+    parser.add_argument(
+        "--generate-config",
+        action="store_true",
+        help="Generate a config file template at ~/.trixctl.conf",
+    )
+
+    subparsers = parser.add_subparsers(dest="command", help="Commands")
+
     # notify command
-    notify_parser = subparsers.add_parser('notify', help='Send notification')
-    notify_parser.add_argument('text', help='Notification text')
-    
+    notify_parser = subparsers.add_parser("notify", help="Send notification")
+    notify_parser.add_argument("text", help="Notification text")
+
     # stats command
-    subparsers.add_parser('stats', help='Get device statistics')
-    
+    subparsers.add_parser("stats", help="Get device statistics")
+
     # power command
-    power_parser = subparsers.add_parser('power', help='Power control')
-    power_parser.add_argument('state', choices=['on', 'off'], help='Power state')
-    
-    # app command
-    app_parser = subparsers.add_parser('app', help='Create custom app')
-    app_parser.add_argument('name', help='App name')
-    app_parser.add_argument('text', help='App text')
-    
+    power_parser = subparsers.add_parser("power", help="Power control")
+    power_parser.add_argument("state", choices=["on", "off"], help="Power state")
+
+    # app command with subcommands
+    app_parser = subparsers.add_parser("app", help="Manage custom apps")
+    app_subparsers = app_parser.add_subparsers(dest="app_command", help="App commands")
+
+    # app create command
+    app_create_parser = app_subparsers.add_parser("create", help="Create custom app")
+    app_create_parser.add_argument("name", help="App name")
+    app_create_parser.add_argument("text", help="App text")
+
+    # app delete command
+    app_delete_parser = app_subparsers.add_parser("delete", help="Delete custom app")
+    app_delete_parser.add_argument("name", help="App name to delete")
+
+    # app list command
+    app_subparsers.add_parser("list", help="List apps in current loop")
+
     # sound command
-    sound_parser = subparsers.add_parser('sound', help='Play sound')
-    sound_parser.add_argument('name', help='Sound name')
-    
+    sound_parser = subparsers.add_parser("sound", help="Play sound")
+    sound_parser.add_argument("name", help="Sound name")
+
+    # backup command
+    backup_parser = subparsers.add_parser("backup", help="Backup device settings")
+    backup_parser.add_argument("filename", help="Backup filename (JSON)")
+    backup_parser.add_argument(
+        "--include-stats", action="store_true", help="Include device stats in backup"
+    )
+
+    # restore command
+    restore_parser = subparsers.add_parser("restore", help="Restore device settings")
+    restore_parser.add_argument("filename", help="Backup filename (JSON)")
+    restore_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be restored without applying",
+    )
+    restore_parser.add_argument(
+        "--force", action="store_true", help="Restore without confirmation"
+    )
+
     args = parser.parse_args()
-    
+
     # Handle generate-config command
-    if getattr(args, 'generate_config', False):
+    if getattr(args, "generate_config", False):
         generate_config()
         return
-    
+
     if not args.command:
         parser.print_help()
         sys.exit(1)
-    
+
     # Load config file
     config = load_config()
-    
+
     # Determine values with priority: CLI args > env vars > config file
-    host = args.host or config.get('host')
-    username = args.username or config.get('username')
-    password = args.password or os.environ.get('TRIXCTL_PASSWORD')
-    
+    host = args.host or config.get("host")
+    username = args.username or config.get("username")
+    password = args.password or os.environ.get("TRIXCTL_PASSWORD")
+
     if not host:
-        print("Error: No host specified. Use --host, set it in config file, or run --generate-config", file=sys.stderr)
+        print(
+            "Error: No host specified. Use --host, set it in config file, "
+            "or run --generate-config",
+            file=sys.stderr,
+        )
         sys.exit(1)
-    
+
     # Setup auth
     auth = None
     if username and password:
         auth = (username, password)
-    
+
     # Create client
     client = Awtrix3(host, auth=auth)
-    
+
     try:
-        if args.command == 'notify':
+        if args.command == "notify":
             result = client.notify(args.text)
-        elif args.command == 'stats':
+        elif args.command == "stats":
             result = client.stats()
-        elif args.command == 'power':
-            result = client.power(args.state == 'on')
-        elif args.command == 'app':
-            result = client.custom_app(args.name, args.text)
-        elif args.command == 'sound':
+        elif args.command == "power":
+            result = client.power(args.state == "on")
+        elif args.command == "app":
+            if not args.app_command:
+                print(
+                    "Error: app command requires a subcommand (create, delete, list)",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+            elif args.app_command == "create":
+                result = client.custom_app(args.name, args.text)
+            elif args.app_command == "delete":
+                result = client.delete_app(args.name)
+            elif args.app_command == "list":
+                result = client.list_apps()
+        elif args.command == "sound":
             result = client.play_sound(args.name)
-        
+        elif args.command == "backup":
+            # Create backup
+            print("Creating backup of device settings...")
+            backup_file = client.backup_settings(args.filename)
+            print(f"Backup saved to: {backup_file}")
+
+            if args.include_stats:
+                print("Backup includes device statistics")
+
+            result = {"status": "success", "backup_file": backup_file}
+
+        elif args.command == "restore":
+            import json  # Import here since not used elsewhere
+
+            # Load and validate backup file
+            try:
+                with open(args.filename, "r") as f:
+                    backup_data = json.load(f)
+            except FileNotFoundError:
+                print(
+                    f"Error: Backup file '{args.filename}' not found", file=sys.stderr
+                )
+                sys.exit(1)
+            except json.JSONDecodeError as e:
+                print(f"Error: Invalid JSON in backup file - {e}", file=sys.stderr)
+                sys.exit(1)
+
+            # Show what will be restored
+            if "backup_timestamp" in backup_data:
+                print(f"Backup created: {backup_data['backup_timestamp']}")
+            if (
+                "device_stats" in backup_data
+                and "version" in backup_data["device_stats"]
+            ):
+                version = backup_data["device_stats"].get("version", "unknown")
+                print(f"Backup from device version: {version}")
+
+            settings_count = len(backup_data.get("settings", {}))
+            print(f"Settings to restore: {settings_count} items")
+
+            if args.dry_run:
+                print("\n--- DRY RUN MODE - Nothing will be changed ---")
+                print("Settings that would be restored:")
+                for key in backup_data.get("settings", {}):
+                    print(f"  - {key}")
+                result = {"status": "dry_run", "settings_count": settings_count}
+            else:
+                # Confirm restoration unless --force is used
+                if not args.force:
+                    confirm = input(
+                        f"\nRestore {settings_count} settings to device? (y/N): "
+                    )
+                    if confirm.lower() not in ["y", "yes"]:
+                        print("Restore cancelled")
+                        sys.exit(0)
+
+                print("Restoring settings...")
+                result = client.restore_settings(backup_data)
+                print("Settings restored successfully!")
+
         if result:
-            if args.command == 'stats':
+            if args.command == "stats":
                 print(format_stats(result))
+            elif args.command in ["backup", "restore"]:
+                # Backup/restore commands handle their own output
+                pass
             else:
                 print(json.dumps(result, indent=2))
-            
+
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
