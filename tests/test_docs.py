@@ -80,9 +80,7 @@ class TestDocumentationConsistency:
                             # Handle apostrophe encoding issues
                             if match in ["Let", "'s go Mets!"]:
                                 continue
-                            assert (
-                                match == expected_message
-                            ), (
+                            assert match == expected_message, (
                                 f"Found inconsistent notification message in "
                                 f"{file_path}: '{match}'"
                             )
@@ -227,9 +225,7 @@ class TestCLIDocumentation:
         # Remove --generate-config as it's an option, not a command
         documented_commands.discard("--generate-config")
 
-        assert documented_commands.issubset(
-            expected_commands
-        ), (
+        assert documented_commands.issubset(expected_commands), (
             f"Documented commands not in implementation: "
             f"{documented_commands - expected_commands}"
         )
@@ -299,9 +295,7 @@ class TestVersionConsistency:
         assert version_match, "Could not find version in pyproject.toml"
         pyproject_version = version_match.group(1)
 
-        assert (
-            awtrix3_version == pyproject_version
-        ), (
+        assert awtrix3_version == pyproject_version, (
             f"Version mismatch: awtrix3.py={awtrix3_version}, "
             f"pyproject.toml={pyproject_version}"
         )
@@ -334,9 +328,7 @@ class TestLinkValidation:
                     # Allow references to the original Awtrix3 project
                     if clean_url in ["Blueforcer/awtrix3", "blueforcer/AWTRIX3"]:
                         continue
-                    assert (
-                        clean_url == expected_repo
-                    ), (
+                    assert clean_url == expected_repo, (
                         f"Inconsistent GitHub URL in {file_path}: {clean_url} "
                         f"(expected {expected_repo})"
                     )
