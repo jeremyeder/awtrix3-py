@@ -201,6 +201,48 @@ awtrix = Awtrix3("192.168.1.128", auth=("username", "password"))
 - `backup_settings(filepath=None)` - Backup device settings to file or dict
 - `restore_settings(backup_data)` - Restore settings from backup file or dict
 
+## MCP Server Integration
+
+This project includes a Model Context Protocol (MCP) server that enables `/trixctl` commands directly from Claude Code CLI.
+
+### Installation Demo
+
+![MCP Installation Demo](demo_mcp_install.gif)
+
+### Usage Demo
+
+![MCP Usage Demo](demo_mcp_usage.gif)
+
+### Setup for Claude Desktop
+
+1. Install MCP dependencies:
+```bash
+pip install -e .[mcp]
+```
+
+2. Add to Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+```json
+{
+  "mcpServers": {
+    "trixctl": {
+      "command": "python",
+      "args": ["/absolute/path/to/awtrix3-py/mcp_server.py"]
+    }
+  }
+}
+```
+
+### Usage in Claude Code
+```
+/trixctl notify "Hello World"
+/trixctl stats
+/trixctl power on
+/trixctl app create test "Testing MCP"
+/trixctl backup /tmp/backup.json
+```
+
+The MCP server provides full compatibility with all trixctl commands and uses your existing `~/.trixctl.conf` configuration.
+
 ## Attribution
 
 Thanks to [@blueforcer](https://github.com/Blueforcer) for creating the amazing [Awtrix3](https://github.com/Blueforcer/awtrix3) project that inspired this client, and to [@claude](https://claude.ai) for the implementation assistance.

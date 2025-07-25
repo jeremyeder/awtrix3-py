@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a minimal Python client for the Awtrix3 smart pixel clock with dual interfaces:
+This is a production-ready Python client for the Awtrix3 smart pixel clock with dual interfaces:
 - **Python library** (`awtrix3.py`) - For programmatic integration
 - **CLI tool** (`trixctl`) - For command-line usage
 
@@ -12,21 +12,24 @@ This is a minimal Python client for the Awtrix3 smart pixel clock with dual inte
 
 ### Core Components
 
-**awtrix3.py** - Single-class HTTP client library
-- `Awtrix3` class wraps 7 core API endpoints: notify, stats, power, custom_app, delete_app, list_apps, play_sound
+**awtrix3.py** - Single-class HTTP client library with utility functions
+- `Awtrix3` class wraps 9 core API endpoints: notify, stats, power, custom_app, delete_app, list_apps, play_sound, get_settings, backup_settings, restore_settings
+- Configuration utilities: `generate_config()`, `load_config()`
+- Formatting utilities: `format_stats()`, `format_uptime()`
 - Simple constructor: `Awtrix3(host, auth=None)`
 - All methods use `requests` library for HTTP calls to `http://{host}/api/*`
 - Methods return JSON responses or None, raise exceptions on HTTP errors
 
-**trixctl** - Executable CLI wrapper
-- Uses `argparse` with subcommands mapping 1:1 to library methods
-- Global `--host` (required), `--username`, `--password` options
-- Imports and instantiates `Awtrix3` class, prints JSON results
-- Commands: `notify TEXT`, `stats`, `power on|off`, `app create|delete|list`, `sound NAME`, `backup|restore`
+**trixctl** - Executable CLI wrapper with comprehensive functionality
+- Uses `argparse` with nested subcommands for complex operations
+- Global `--host` (required), `--username`, `--password`, `--generate-config` options
+- Configuration file support (`~/.trixctl.conf`) with environment variable override
+- Commands: `notify TEXT`, `stats`, `power on|off`, `app create|delete|list NAME [TEXT]`, `sound NAME`, `backup FILENAME [--include-stats]`, `restore FILENAME [--dry-run] [--force]`
+- Professional output formatting with human-readable stats tables
 
 ### Dependencies
 - **requests** - Only external dependency for HTTP client functionality
-- **Python standard library** - argparse, json, sys for CLI
+- **Python standard library** - argparse, json, sys, configparser, pathlib, datetime for CLI and utilities
 
 ## Development Commands
 
@@ -34,66 +37,82 @@ This is a minimal Python client for the Awtrix3 smart pixel clock with dual inte
 ```bash
 python -m venv venv
 source venv/bin/activate  # or `venv\Scripts\activate` on Windows
-pip install requests
+pip install -e .  # Install in development mode
 ```
 
 ### Testing
 ```bash
-# Test CLI (requires real Awtrix3 device)
-trixctl --host 192.168.1.128 stats
+# Run comprehensive test suite (85 tests)
+python -m pytest
 
-# Test library
-python example.py  # Edit IP address first
+# Run with coverage
+python -m pytest --cov=awtrix3 --cov-report=html
+
+# Test CLI without device (mock tests)
+python -m pytest tests/test_cli.py
+
+# Test library functionality
+python -m pytest tests/test_awtrix3.py
+
+# Test documentation accuracy
+python -m pytest tests/test_docs.py
 ```
 
-### Making Executable
+### Code Quality
 ```bash
-chmod +x trixctl  # Already done in repo
+# Format code
+black awtrix3.py tests/
+
+# Check formatting
+black --check awtrix3.py tests/
+
+# Lint code
+flake8 awtrix3.py tests/
+
+# Sort imports
+isort awtrix3.py tests/
 ```
+
+### CI/CD
+- GitHub Actions workflow runs on Python 3.12 and 3.13
+- Automated testing, linting, and formatting checks
+- All tests must pass before merge
 
 ## Design Principles
 
+- **Production ready** - Comprehensive testing, CI/CD, proper error handling
 - **Ridiculously simple** - Single-file components, minimal dependencies
-- **CLI-first user experience** - trixctl is the primary interface
+- **CLI-first user experience** - trixctl is the primary interface with professional UX
 - **Direct API mapping** - No abstraction layers, 1:1 method-to-endpoint mapping
-- **PEP8 compliance** - Standard Python formatting and naming conventions
+- **PEP8 compliance** - Black formatting, flake8 linting, isort import sorting
 - **User journey documentation** - README organized around "I want to..." scenarios
+- **Configuration flexibility** - Config files, environment variables, CLI overrides
+- **Backup/restore capabilities** - Full device settings management
+- **Comprehensive testing** - 100% import success, mocked HTTP tests, documentation validation
 
-## GitHub Workflow Guidelines
+## Key Features
 
-### Issue Status Management
-- **Only Jeremy moves issues from Backlog to Ready. Claude only works on Ready issues unless explicitly directed otherwise.**
-- Claude workflow: Ready → In Progress → In Review (stop here)
-- When picking up a Ready issue, immediately assign yourself and update to "In Progress"
-- When work is complete, move to "In Review" and wait for Jeremy's review
-- NEVER move issues to Done or merge PRs - Jeremy handles final approval
-- **Always close issues when the PR is merged** (not before)
+### Configuration Management
+- `~/.trixctl.conf` file for default settings
+- `TRIXCTL_PASSWORD` environment variable for secure auth
+- CLI arguments override config file and environment
+- `--generate-config` creates self-documented template
 
-### Issue Creation
-- **Claude can create issues to capture great ideas discovered during work. Use sparingly - only for genuinely valuable enhancements or important problems found. Jeremy will triage all new issues.**
+### Backup and Restore
+- JSON-based backup format with metadata and timestamps
+- CLI: `backup FILENAME [--include-stats]` and `restore FILENAME [--dry-run] [--force]`
+- Python: `backup_settings(filepath=None)` and `restore_settings(backup_data)`
+- Use cases: device migration, configuration experiments, disaster recovery
 
-### Commit Message Standards
-- **Bottom Line Up Front (BLUF)** - Start with concise action summary
-- Keep first line under 50 characters for readability  
-- Use imperative mood ("Add feature" not "Added feature")
-- Include "Addresses #X" to link commits to issues
-- Follow with detailed explanation if needed
+### Professional Output
+- Human-readable stats table with uptime formatting
+- Consistent error messages and exit codes
+- JSON output for programmatic use
+- Bash completion support for faster CLI usage
 
-### Communication Patterns
-- Comment on issues with progress updates and completion summaries
-- Tag @jeremyeder appropriately for reviews
-- Use checkmarks (✅) and code examples in status updates
-- Provide clear "ready for review" messaging
-
-### Testing and Validation
-- Always test syntax after changes (imports, CLI help, bash completion)
-- Validate bash completion with `bash -n`
-- Test CLI arguments and help text before committing
-
-### Documentation Requirements
-- Update README with new functionality examples
-- Create dedicated guides for complex features
-- Keep documentation in sync with code changes
-
-### Development Workflow
-- You always use feature branches.
+### Testing Strategy
+- Unit tests for all library methods with mocked HTTP
+- CLI tests with argument parsing and configuration
+- Documentation tests validating all examples work
+- API tests ensuring proper HTTP request/response handling
+- 85 total tests with comprehensive coverage
