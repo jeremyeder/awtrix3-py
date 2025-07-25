@@ -167,10 +167,21 @@ def main():
     power_parser = subparsers.add_parser('power', help='Power control')
     power_parser.add_argument('state', choices=['on', 'off'], help='Power state')
     
-    # app command
-    app_parser = subparsers.add_parser('app', help='Create custom app')
-    app_parser.add_argument('name', help='App name')
-    app_parser.add_argument('text', help='App text')
+    # app command with subcommands
+    app_parser = subparsers.add_parser('app', help='Manage custom apps')
+    app_subparsers = app_parser.add_subparsers(dest='app_command', help='App commands')
+    
+    # app create command
+    app_create_parser = app_subparsers.add_parser('create', help='Create custom app')
+    app_create_parser.add_argument('name', help='App name')
+    app_create_parser.add_argument('text', help='App text')
+    
+    # app delete command  
+    app_delete_parser = app_subparsers.add_parser('delete', help='Delete custom app')
+    app_delete_parser.add_argument('name', help='App name to delete')
+    
+    # app list command
+    app_subparsers.add_parser('list', help='List apps in current loop')
     
     # sound command
     sound_parser = subparsers.add_parser('sound', help='Play sound')
@@ -226,7 +237,15 @@ def main():
         elif args.command == 'power':
             result = client.power(args.state == 'on')
         elif args.command == 'app':
-            result = client.custom_app(args.name, args.text)
+            if not args.app_command:
+                print("Error: app command requires a subcommand (create, delete, list)", file=sys.stderr)
+                sys.exit(1)
+            elif args.app_command == 'create':
+                result = client.custom_app(args.name, args.text)
+            elif args.app_command == 'delete':
+                result = client.delete_app(args.name)
+            elif args.app_command == 'list':
+                result = client.list_apps()
         elif args.command == 'sound':
             result = client.play_sound(args.name)
         elif args.command == 'backup':

@@ -40,6 +40,18 @@ class Awtrix3:
         response.raise_for_status()
         return response.json() if response.text else None
     
+    def delete_app(self, name):
+        """Delete a custom app by name"""
+        response = requests.delete(f"{self.base_url}/custom", params={"name": name}, auth=self.auth)
+        response.raise_for_status()
+        return response.json() if response.text else None
+    
+    def list_apps(self):
+        """Get list of apps currently in the loop"""
+        response = requests.get(f"{self.base_url}/stats/loop", auth=self.auth)
+        response.raise_for_status()
+        return response.json()
+    
     def get_settings(self):
         """Get current device settings for backup"""
         response = requests.get(f"{self.base_url}/settings", auth=self.auth)
