@@ -32,7 +32,7 @@ _trixctl_completion() {
     case "${prev}" in
         --host)
             # Complete with common IP patterns (user can override)
-            COMPREPLY=( $(compgen -W "192.168.1.100 192.168.0.100 localhost" -- ${cur}) )
+            COMPREPLY=( $(compgen -W "192.168.1.128 192.168.0.128 localhost" -- ${cur}) )
             return 0
             ;;
         --username)

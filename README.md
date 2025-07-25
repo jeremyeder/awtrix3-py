@@ -4,15 +4,25 @@ A ridiculously simple Python client for the [Awtrix3](https://github.com/Bluefor
 
 ## Installation
 
+### From PyPI (Recommended)
+
+```bash
+pip install awtrix3
+```
+
+### From Source
+
 ```bash
 git clone https://github.com/jeremyeder/awtrix3-py.git
 cd awtrix3-py
-pip install requests
+pip install -e .
 ```
 
 ## CLI Usage
 
 Use `trixctl` for quick command-line control of your Awtrix3 device:
+
+> **Note**: After installing from PyPI, the `trixctl` command will be available globally. If installing from source, you can use `./trixctl` or `python -m awtrix3`.
 
 ### Configuration Setup (Optional but Recommended)
 
@@ -20,7 +30,7 @@ Create a config file to avoid repeating common options:
 
 ```bash
 # Generate a config file template
-./trixctl --generate-config
+trixctl --generate-config
 
 # Edit the generated ~/.trixctl.conf file
 # Set your device IP and username (if needed)
@@ -34,60 +44,69 @@ export TRIXCTL_PASSWORD="your_password"
 ### I want to send a quick message to my display
 ```bash
 # With config file (host already set)
-./trixctl notify "Meeting in 5 minutes!"
-./trixctl notify "Coffee ready ☕"
+trixctl notify "Let's go Mets!"
+trixctl notify "Let's go Mets!"
 
 # Without config file
-./trixctl --host 192.168.1.100 notify "Meeting in 5 minutes!"
+trixctl --host 192.168.1.128 notify "Let's go Mets!"
 ```
 
 ### I want to check if my device is working
 ```bash
-./trixctl stats
+trixctl stats
 ```
 
 ### I want to turn my display off at night
 ```bash
-./trixctl power off
+trixctl power off
 ```
 
 ### I want to turn my display back on
 ```bash
-./trixctl power on
+trixctl power on
 ```
 
 ### I want to display ongoing information (like temperature)
 ```bash
-./trixctl app temperature "72°F"
-./trixctl app calendar "Meeting @ 3pm"
+trixctl app create temperature "72°F"
+trixctl app create calendar "Meeting @ 3pm"
+```
+
+### I want to manage my custom apps
+```bash
+# List all apps currently in the display loop
+trixctl app list
+
+# Delete a specific custom app
+trixctl app delete temperature
 ```
 
 ### I want to play a notification sound
 ```bash
-./trixctl sound notification
-./trixctl sound alarm
+trixctl sound notification
+trixctl sound alarm
 ```
 
 ### I want to backup my device settings
 ```bash
 # Create backup file
-./trixctl backup my_device.json
+trixctl backup my_device.json
 
 # Preview what a restore would do
-./trixctl restore my_device.json --dry-run
+trixctl restore my_device.json --dry-run
 
 # Restore settings from backup
-./trixctl restore my_device.json
+trixctl restore my_device.json
 ```
 
 ### I need to authenticate with my device
 ```bash
 # Set username in config file and password via environment:
 export TRIXCTL_PASSWORD="secret"
-./trixctl notify "Hello!"
+trixctl notify "Let's go Mets!"
 
 # Or override everything via CLI:
-./trixctl --host 192.168.1.100 --username admin --password secret notify "Hello!"
+trixctl --host 192.168.1.128 --username admin --password secret notify "Let's go Mets!"
 ```
 
 ### Bash Completion (Linux/Mac)
@@ -107,9 +126,9 @@ source ~/.bashrc
 
 Now you can use tab completion:
 ```bash
-./trixctl <TAB>          # Shows all commands and options
-./trixctl power <TAB>    # Shows 'on' and 'off'
-./trixctl --host <TAB>   # Shows common IP suggestions
+trixctl <TAB>          # Shows all commands and options
+trixctl power <TAB>    # Shows 'on' and 'off'
+trixctl --host <TAB>   # Shows common IP suggestions
 ```
 
 ## Python Library Usage
@@ -120,13 +139,17 @@ For developers who want to integrate Awtrix3 into their Python applications:
 from awtrix3 import Awtrix3
 
 # Connect to your device
-awtrix = Awtrix3("192.168.1.100")
+awtrix = Awtrix3("192.168.1.128")
 
 # Send notification
-awtrix.notify("Hello World!")
+awtrix.notify("Let's go Mets!")
 
 # Create custom app
 awtrix.custom_app("temperature", "72°F")
+
+# Manage custom apps
+apps = awtrix.list_apps()              # Get all apps in loop
+awtrix.delete_app("temperature")       # Delete specific app
 
 # Get device stats
 stats = awtrix.stats()
@@ -149,7 +172,7 @@ awtrix.restore_settings("backup.json") # Restore from file
 If your device requires authentication:
 
 ```python
-awtrix = Awtrix3("192.168.1.100", auth=("username", "password"))
+awtrix = Awtrix3("192.168.1.128", auth=("username", "password"))
 ```
 
 ### Available Methods
@@ -158,6 +181,8 @@ awtrix = Awtrix3("192.168.1.100", auth=("username", "password"))
 - `stats()` - Get device statistics  
 - `power(on=True)` - Power control
 - `custom_app(name, text, **kwargs)` - Create/update custom app
+- `delete_app(name)` - Delete a custom app by name
+- `list_apps()` - Get list of apps currently in the loop
 - `play_sound(name)` - Play a sound
 - `get_settings()` - Get current device settings
 - `backup_settings(filepath=None)` - Backup device settings to file or dict

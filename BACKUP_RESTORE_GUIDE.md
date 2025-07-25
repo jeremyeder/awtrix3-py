@@ -15,16 +15,16 @@ The backup and restore functionality allows you to save and restore Awtrix3 devi
 
 ```bash
 # Create a backup
-./trixctl --host 192.168.1.100 backup my_device_backup.json
+trixctl --host 192.168.1.128 backup my_device_backup.json
 
 # Restore from backup (with confirmation)
-./trixctl --host 192.168.1.100 restore my_device_backup.json
+trixctl --host 192.168.1.128 restore my_device_backup.json
 
 # Restore with dry-run (preview only)
-./trixctl --host 192.168.1.100 restore my_device_backup.json --dry-run
+trixctl --host 192.168.1.128 restore my_device_backup.json --dry-run
 
 # Force restore without confirmation
-./trixctl --host 192.168.1.100 restore my_device_backup.json --force
+trixctl --host 192.168.1.128 restore my_device_backup.json --force
 ```
 
 ### Python Library Usage
@@ -32,7 +32,7 @@ The backup and restore functionality allows you to save and restore Awtrix3 devi
 ```python
 from awtrix3 import Awtrix3
 
-awtrix = Awtrix3("192.168.1.100")
+awtrix = Awtrix3("192.168.1.128")
 
 # Create backup to file
 awtrix.backup_settings("backup.json")
@@ -59,7 +59,7 @@ Backup files are JSON format with the following structure:
     "version": "0.96",
     "battery": 85,
     "uptime": 12345,
-    "ip": "192.168.1.100"
+    "ip": "192.168.1.128"
   },
   "settings": {
     "brightness": 80,
@@ -82,7 +82,7 @@ Backup files are JSON format with the following structure:
 ### Backup Command
 
 ```bash
-./trixctl backup <filename> [options]
+trixctl backup <filename> [options]
 ```
 
 **Arguments:**
@@ -94,16 +94,16 @@ Backup files are JSON format with the following structure:
 **Examples:**
 ```bash
 # Basic backup
-./trixctl backup daily_backup.json
+trixctl backup daily_backup.json
 
 # Backup with device stats
-./trixctl backup full_backup.json --include-stats
+trixctl backup full_backup.json --include-stats
 ```
 
 ### Restore Command
 
 ```bash
-./trixctl restore <filename> [options]
+trixctl restore <filename> [options]
 ```
 
 **Arguments:**
@@ -116,13 +116,13 @@ Backup files are JSON format with the following structure:
 **Examples:**
 ```bash
 # Interactive restore (asks for confirmation)
-./trixctl restore backup.json
+trixctl restore backup.json
 
 # Preview restore without applying
-./trixctl restore backup.json --dry-run
+trixctl restore backup.json --dry-run
 
 # Automatic restore without prompts
-./trixctl restore backup.json --force
+trixctl restore backup.json --force
 ```
 
 ## Python Library API
@@ -177,23 +177,23 @@ result = awtrix.restore_settings(backup_dict)
 
 ```bash
 # Backup old device
-./trixctl --host 192.168.1.100 backup old_device.json
+trixctl --host 192.168.1.128 backup old_device.json
 
 # Restore to new device  
-./trixctl --host 192.168.1.101 restore old_device.json
+trixctl --host 192.168.1.129 restore old_device.json
 ```
 
 ### Configuration Experiments
 
 ```bash
 # Backup current config
-./trixctl backup before_experiment.json
+trixctl backup before_experiment.json
 
 # Make experimental changes...
-./trixctl settings '{"brightness": 20}'
+trixctl settings '{"brightness": 20}'
 
 # Restore if needed
-./trixctl restore before_experiment.json
+trixctl restore before_experiment.json
 ```
 
 ### Batch Device Setup
@@ -206,7 +206,7 @@ template_settings = {
     "autoTransition": False
 }
 
-devices = ["192.168.1.100", "192.168.1.101", "192.168.1.102"]
+devices = ["192.168.1.128", "192.168.1.129", "192.168.1.130"]
 
 for ip in devices:
     awtrix = Awtrix3(ip)
@@ -231,7 +231,7 @@ def daily_backup(device_ip):
     # Cleanup old backups (keep last 7 days)
     # ... cleanup logic here
 
-daily_backup("192.168.1.100")
+daily_backup("192.168.1.128")
 ```
 
 ## Error Handling
@@ -255,7 +255,7 @@ ValueError: Invalid backup data: missing 'settings' key
 
 **Network Issues:**
 ```
-Error: HTTPConnectionPool(host='192.168.1.100', port=80): 
+Error: HTTPConnectionPool(host='192.168.1.128', port=80): 
 Max retries exceeded with url: /api/settings
 ```
 
@@ -272,10 +272,10 @@ Max retries exceeded with url: /api/settings
 Tab completion is available for backup/restore commands:
 
 ```bash
-./trixctl backup <TAB>          # Completes with .json files
-./trixctl backup file.json --<TAB>  # Shows --include-stats
-./trixctl restore <TAB>         # Completes with .json files  
-./trixctl restore file.json --<TAB> # Shows --dry-run --force
+trixctl backup <TAB>          # Completes with .json files
+trixctl backup file.json --<TAB>  # Shows --include-stats
+trixctl restore <TAB>         # Completes with .json files  
+trixctl restore file.json --<TAB> # Shows --dry-run --force
 ```
 
 ## Limitations
