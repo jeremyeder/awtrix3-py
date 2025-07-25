@@ -90,7 +90,7 @@ class TestAPIResponses:
 
         assert result == apps_data
         mock_get.assert_called_once_with(
-            "http://192.168.1.128/api/stats/loop", auth=None
+            "http://192.168.1.128/api/loop", auth=None
         )
 
     @patch("awtrix3.requests.delete")
@@ -278,7 +278,7 @@ class TestAPIEndpoints:
 
         self.client.list_apps()
 
-        mock_get.assert_called_once_with("http://test.local/api/stats/loop", auth=None)
+        mock_get.assert_called_once_with("http://test.local/api/loop", auth=None)
 
     @patch("awtrix3.requests.post")
     def test_play_sound_endpoint(self, mock_post):

@@ -2,6 +2,7 @@
 """trixctl - CLI for Awtrix3 smart pixel clock"""
 
 import argparse
+import json
 import os
 import sys
 
@@ -149,7 +150,6 @@ def main():
             result = {"status": "success", "backup_file": backup_file}
 
         elif args.command == "restore":
-            import json  # Import here since not used elsewhere
 
             # Load and validate backup file
             try:
