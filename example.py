@@ -38,7 +38,7 @@ awtrix.clock_profile(format_24hr=True, show_seconds=False, minimal=True)
 print("Applied minimal 24-hour clock profile")
 
 # Configure as 12-hour clock with seconds
-awtrix.clock_profile(format_24hr=False, show_seconds=True, minimal=True)  
+awtrix.clock_profile(format_24hr=False, show_seconds=True, minimal=True)
 print("Applied 12-hour clock with seconds")
 
 # Apply custom settings via JSON
@@ -46,7 +46,7 @@ custom_settings = {
     "brightness": 100,
     "timeFormat": "HH:mm:ss",
     "showWeekday": True,
-    "centerText": False
+    "centerText": False,
 }
 awtrix.configure_settings(custom_settings)
 print("Applied custom settings")

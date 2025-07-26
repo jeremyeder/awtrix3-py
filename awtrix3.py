@@ -158,7 +158,9 @@ class Awtrix3:
         """Configure device settings with custom JSON payload"""
         if not isinstance(settings, dict):
             raise ValueError("Settings must be a dictionary")
-        response = requests.post(f"{self.base_url}/settings", json=settings, auth=self.auth)
+        response = requests.post(
+            f"{self.base_url}/settings", json=settings, auth=self.auth
+        )
         response.raise_for_status()
         return response.json() if response.text else None
 
@@ -171,43 +173,45 @@ class Awtrix3:
 
     def clock_profile(self, format_24hr=True, show_seconds=False, minimal=True):
         """Configure device as a minimal clock with specified time format
-        
+
         Args:
             format_24hr (bool): Use 24-hour format if True, 12-hour if False
             show_seconds (bool): Include seconds in time display
             minimal (bool): Strip down to minimal clock settings
-            
+
         Returns:
             dict: Result of settings update
         """
         time_format = self._build_time_format(format_24hr, show_seconds)
-        
+
         settings = {
             "timeFormat": time_format,
             "brightness": DEFAULT_BRIGHTNESS,
         }
-        
+
         if minimal:
             # Minimal clock settings - strip down non-essential features
-            settings.update({
-                "showWeekday": False,
-                "showDate": False,
-                "showTemp": False,
-                "showHumidity": False,
-                "showBattery": False,
-                "showSeconds": show_seconds,
-                "autoTransition": True,
-                "transitionTime": 250,
-                "matrixLayout": 1,
-                "colorCorrection": [255, 255, 255],
-                "gamma": 2.8,
-                "upperCaseLetters": False,
-                "scrollSpeed": 100,
-                "scrollPause": 3000,
-                "textOffset": 6,
-                "centerText": True,
-            })
-        
+            settings.update(
+                {
+                    "showWeekday": False,
+                    "showDate": False,
+                    "showTemp": False,
+                    "showHumidity": False,
+                    "showBattery": False,
+                    "showSeconds": show_seconds,
+                    "autoTransition": True,
+                    "transitionTime": 250,
+                    "matrixLayout": 1,
+                    "colorCorrection": [255, 255, 255],
+                    "gamma": 2.8,
+                    "upperCaseLetters": False,
+                    "scrollSpeed": 100,
+                    "scrollPause": 3000,
+                    "textOffset": 6,
+                    "centerText": True,
+                }
+            )
+
         return self.configure_settings(settings)
 
 
