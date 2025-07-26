@@ -1,3 +1,5 @@
+import json
+
 import requests
 
 __version__ = "0.1.0"
@@ -47,7 +49,11 @@ class Awtrix3:
             f"{self.base_url}/custom", params={"name": name}, json=data, auth=self.auth
         )
         response.raise_for_status()
-        return response.json() if response.text else None
+        # API returns plain text "OK", not JSON
+        try:
+            return response.json() if response.text.strip() else None
+        except json.JSONDecodeError:
+            return {"status": response.text.strip()} if response.text.strip() else None
 
     def play_sound(self, sound_name):
         """Play a sound by name"""
@@ -60,15 +66,19 @@ class Awtrix3:
         """Delete a custom app by name"""
         if not name or not isinstance(name, str):
             raise ValueError("App name must be a non-empty string")
-        response = requests.delete(
+        response = requests.post(
             f"{self.base_url}/custom", params={"name": name}, auth=self.auth
         )
         response.raise_for_status()
-        return response.json() if response.text else None
+        # API returns plain text "OK", not JSON
+        try:
+            return response.json() if response.text.strip() else None
+        except json.JSONDecodeError:
+            return {"status": response.text.strip()} if response.text.strip() else None
 
     def list_apps(self):
         """Get list of apps currently in the loop"""
-        response = requests.get(f"{self.base_url}/stats/loop", auth=self.auth)
+        response = requests.get(f"{self.base_url}/loop", auth=self.auth)
         response.raise_for_status()
         return response.json()
 

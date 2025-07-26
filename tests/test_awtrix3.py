@@ -1,5 +1,6 @@
 """Unit tests for the Awtrix3 core library."""
 
+import json
 from unittest.mock import Mock, patch
 
 import pytest
@@ -146,20 +147,20 @@ class TestAwtrix3Methods:
         with pytest.raises(ValueError, match="App name must be a non-empty string"):
             self.client.delete_app(None)
 
-    @patch("awtrix3.requests.delete")
-    def test_delete_app_success(self, mock_delete):
+    @patch("awtrix3.requests.post")
+    def test_delete_app_success(self, mock_post):
         """Test successful app deletion."""
         mock_response = Mock()
-        mock_response.json.return_value = {"status": "deleted"}
-        mock_response.text = '{"status": "deleted"}'
-        mock_delete.return_value = mock_response
+        mock_response.json.side_effect = json.JSONDecodeError("No JSON", "", 0)
+        mock_response.text = "OK"
+        mock_post.return_value = mock_response
 
         result = self.client.delete_app("weather")
 
-        mock_delete.assert_called_once_with(
+        mock_post.assert_called_once_with(
             "http://192.168.1.128/api/custom", params={"name": "weather"}, auth=None
         )
-        assert result == {"status": "deleted"}
+        assert result == {"status": "OK"}
 
     @patch("awtrix3.requests.get")
     def test_list_apps_success(self, mock_get):
@@ -170,9 +171,7 @@ class TestAwtrix3Methods:
 
         result = self.client.list_apps()
 
-        mock_get.assert_called_once_with(
-            "http://192.168.1.128/api/stats/loop", auth=None
-        )
+        mock_get.assert_called_once_with("http://192.168.1.128/api/loop", auth=None)
         assert result == ["weather", "clock", "calendar"]
 
     @patch("awtrix3.requests.post")
