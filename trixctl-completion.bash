@@ -20,7 +20,7 @@ _trixctl_completion() {
     opts="--host --username --password --generate-config --help"
     
     # Commands
-    commands="notify stats power app sound backup restore"
+    commands="notify stats power app sound backup restore clock settings"
     
     # If we're completing the first argument after trixctl
     if [[ ${COMP_CWORD} -eq 1 ]]; then
@@ -73,6 +73,13 @@ _trixctl_completion() {
             else
                 COMPREPLY=( $(compgen -f -X '!*.json' -- ${cur}) )
             fi
+            ;;
+        clock)
+            # Complete with clock options
+            COMPREPLY=( $(compgen -W "--12hr --seconds --full" -- ${cur}) )
+            ;;
+        settings)
+            # settings takes JSON payload - no specific completion
             ;;
         *)
             # Default to global options
