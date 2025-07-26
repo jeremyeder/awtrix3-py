@@ -89,9 +89,7 @@ class TestAPIResponses:
         result = self.client.list_apps()
 
         assert result == apps_data
-        mock_get.assert_called_once_with(
-            "http://192.168.1.128/api/loop", auth=None
-        )
+        mock_get.assert_called_once_with("http://192.168.1.128/api/loop", auth=None)
 
     @patch("awtrix3.requests.delete")
     def test_delete_app_success_response(self, mock_delete):

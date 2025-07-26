@@ -170,9 +170,7 @@ class TestAwtrix3Methods:
 
         result = self.client.list_apps()
 
-        mock_get.assert_called_once_with(
-            "http://192.168.1.128/api/loop", auth=None
-        )
+        mock_get.assert_called_once_with("http://192.168.1.128/api/loop", auth=None)
         assert result == ["weather", "clock", "calendar"]
 
     @patch("awtrix3.requests.post")

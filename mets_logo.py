@@ -9,12 +9,12 @@ awtrix = Awtrix3("192.168.1.128")  # Replace with your device IP
 # Create Mets logo custom app
 # Using baseball icon (2099) with Mets colors
 awtrix.custom_app(
-    "mets_logo", 
+    "mets_logo",
     "Let's Go Mets!",  # Let's Go Mets!
     icon=2099,  # Baseball icon
     color="#FF6600",  # Mets orange
     background="#002D72",  # Mets blue
-    duration=5000  # Show for 5 seconds
+    duration=5000,  # Show for 5 seconds
 )
 
 print("Mets logo displayed on Awtrix3!")
