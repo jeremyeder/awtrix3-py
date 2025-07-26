@@ -99,6 +99,32 @@ trixctl restore my_device.json --dry-run
 trixctl restore my_device.json
 ```
 
+### I want to configure my device as a minimal clock
+```bash
+# Minimal 24-hour clock (strips down to essentials)
+trixctl clock
+
+# 12-hour format with seconds  
+trixctl clock --12hr --seconds
+
+# Keep all settings, just change time format
+trixctl clock --12hr --full
+```
+
+### I want to apply custom device settings
+```bash
+# Set brightness and time format
+trixctl settings '{"brightness": 60, "timeFormat": "HH:mm:ss"}'
+
+# Complex configuration
+trixctl settings '{
+  "brightness": 100,
+  "timeFormat": "hh:mm A",
+  "showWeekday": true,
+  "centerText": false
+}'
+```
+
 ### I need to authenticate with my device
 ```bash
 # Set username in config file and password via environment:
@@ -178,6 +204,13 @@ awtrix.power(True)   # Turn on
 awtrix.backup_settings("backup.json")  # Save to file
 settings = awtrix.get_settings()       # Get current settings
 awtrix.restore_settings("backup.json") # Restore from file
+
+# Clock profile configuration
+awtrix.clock_profile(format_24hr=True, show_seconds=False)  # Minimal 24hr clock
+awtrix.clock_profile(format_24hr=False, show_seconds=True)  # 12hr with seconds
+
+# Custom settings configuration
+awtrix.configure_settings({"brightness": 80, "timeFormat": "HH:mm"})
 ```
 
 ### Authentication
@@ -200,6 +233,8 @@ awtrix = Awtrix3("192.168.1.128", auth=("username", "password"))
 - `get_settings()` - Get current device settings
 - `backup_settings(filepath=None)` - Backup device settings to file or dict
 - `restore_settings(backup_data)` - Restore settings from backup file or dict
+- `clock_profile(format_24hr=True, show_seconds=False, minimal=True)` - Configure minimal clock display
+- `configure_settings(settings)` - Apply custom device settings with JSON payload
 
 ## MCP Server Integration
 

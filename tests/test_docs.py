@@ -92,11 +92,11 @@ class TestDocumentationConsistency:
             content = f.read()
 
         # Check that it mentions the correct number of API endpoints
-        assert "9 core API endpoints" in content
+        assert "7 core API endpoints" in content
 
         # Check that it mentions the correct CLI structure
         assert "app create|delete|list" in content
-        assert "backup FILENAME" in content and "restore FILENAME" in content
+        assert "backup|restore" in content
 
     def test_method_documentation_matches_implementation(self):
         """Test that documented methods match actual implementation."""
@@ -220,6 +220,8 @@ class TestCLIDocumentation:
             "sound",
             "backup",
             "restore",
+            "clock",
+            "settings",
         }
 
         # Remove --generate-config as it's an option, not a command
@@ -265,6 +267,8 @@ class TestCLIDocumentation:
                 "sound",
                 "backup",
                 "restore",
+                "clock",
+                "settings",
             ]
             for command in expected_commands:
                 assert (

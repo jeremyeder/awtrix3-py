@@ -81,6 +81,26 @@ def main():
         "--force", action="store_true", help="Restore without confirmation"
     )
 
+    # clock command
+    clock_parser = subparsers.add_parser(
+        "clock", help="Configure minimal clock profile"
+    )
+    clock_parser.add_argument(
+        "--12hr", action="store_true", help="Use 12-hour format (default: 24-hour)"
+    )
+    clock_parser.add_argument(
+        "--seconds", action="store_true", help="Show seconds in time display"
+    )
+    clock_parser.add_argument(
+        "--full", action="store_true", help="Keep full device settings (not minimal)"
+    )
+
+    # settings command
+    settings_parser = subparsers.add_parser(
+        "settings", help="Configure device settings with JSON payload"
+    )
+    settings_parser.add_argument("payload", help="JSON settings payload")
+
     args = parser.parse_args()
 
     # Handle generate-config command
@@ -150,7 +170,6 @@ def main():
             result = {"status": "success", "backup_file": backup_file}
 
         elif args.command == "restore":
-
             # Load and validate backup file
             try:
                 with open(args.filename, "r") as f:
@@ -197,11 +216,35 @@ def main():
                 result = client.restore_settings(backup_data)
                 print("Settings restored successfully!")
 
+        elif args.command == "clock":
+            # Configure clock profile
+            format_24hr = not args.__dict__.get("12hr", False)  # Invert 12hr flag
+            show_seconds = args.seconds
+            minimal = not args.full  # Invert full flag
+
+            print("Configuring clock profile...")
+            result = client.clock_profile(
+                format_24hr=format_24hr, show_seconds=show_seconds, minimal=minimal
+            )
+            print("Clock profile configured successfully!")
+
+        elif args.command == "settings":
+            # Parse and apply JSON settings
+            try:
+                settings_data = json.loads(args.payload)
+            except json.JSONDecodeError as e:
+                print(f"Error: Invalid JSON payload - {e}", file=sys.stderr)
+                sys.exit(1)
+
+            print("Applying custom settings...")
+            result = client.configure_settings(settings_data)
+            print("Settings applied successfully!")
+
         if result:
             if args.command == "stats":
                 print(format_stats(result))
-            elif args.command in ["backup", "restore"]:
-                # Backup/restore commands handle their own output
+            elif args.command in ["backup", "restore", "clock", "settings"]:
+                # These commands handle their own output
                 pass
             else:
                 print(json.dumps(result, indent=2))

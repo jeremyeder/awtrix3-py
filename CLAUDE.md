@@ -13,7 +13,7 @@ This is a production-ready Python client for the Awtrix3 smart pixel clock with 
 ### Core Components
 
 **awtrix3.py** - Single-class HTTP client library with utility functions
-- `Awtrix3` class wraps 9 core API endpoints: notify, stats, power, custom_app, delete_app, list_apps, play_sound, get_settings, backup_settings, restore_settings
+- `Awtrix3` class wraps 7 core API endpoints: notify, stats, power, custom_app, delete_app, list_apps, play_sound
 - Configuration utilities: `generate_config()`, `load_config()`
 - Formatting utilities: `format_stats()`, `format_uptime()`
 - Simple constructor: `Awtrix3(host, auth=None)`
@@ -24,7 +24,7 @@ This is a production-ready Python client for the Awtrix3 smart pixel clock with 
 - Uses `argparse` with nested subcommands for complex operations
 - Global `--host` (required), `--username`, `--password`, `--generate-config` options
 - Configuration file support (`~/.trixctl.conf`) with environment variable override
-- Commands: `notify TEXT`, `stats`, `power on|off`, `app create|delete|list NAME [TEXT]`, `sound NAME`, `backup FILENAME [--include-stats]`, `restore FILENAME [--dry-run] [--force]`
+- Commands: `notify TEXT`, `stats`, `power on|off`, `app create|delete|list NAME [TEXT]`, `sound NAME`, `backup|restore FILENAME [--include-stats] [--dry-run] [--force]`, `clock [--12hr] [--seconds] [--full]`, `settings JSON_PAYLOAD`
 - Professional output formatting with human-readable stats tables
 
 ### Dependencies
