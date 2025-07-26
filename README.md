@@ -241,7 +241,7 @@ pip install -e .[mcp]
 /trixctl backup /tmp/backup.json
 ```
 
-The MCP server provides full compatibility with all trixctl commands and uses your existing `~/.trixctl.conf` configuration.
+The MCP server provides full compatibility with the trixctl CLI and uses your existing `~/.trixctl.conf` configuration.
 
 ## Attribution
 
