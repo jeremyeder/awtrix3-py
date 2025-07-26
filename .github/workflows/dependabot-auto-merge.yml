@@ -1,0 +1,135 @@
+name: Dependabot Auto-Merge
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: Enable auto-merge for Dependabot PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get the PR details
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            
+            // Only auto-merge if it's a Dependabot PR and CI is required
+            if (pr.user.login === 'dependabot[bot]') {
+              console.log('Enabling auto-merge for Dependabot PR');
+              
+              // Enable auto-merge with squash merge
+              await github.rest.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                event: 'APPROVE',
+                body: 'Auto-approving Dependabot PR'
+              });
+              
+              // Enable auto-merge (requires branch protection rules)
+              try {
+                await github.rest.pulls.updateBranch({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.issue.number,
+                });
+                
+                await github.graphql(`
+                  mutation($pullRequestId: ID!) {
+                    enablePullRequestAutoMerge(input: {
+                      pullRequestId: $pullRequestId,
+                      mergeMethod: SQUASH
+                    }) {
+                      pullRequest {
+                        autoMergeRequest {
+                          enabledAt
+                        }
+                      }
+                    }
+                  }
+                `, {
+                  pullRequestId: pr.node_id,
+                });
+                
+                console.log('Auto-merge enabled for PR #' + context.issue.number);
+              } catch (error) {
+                console.log('Could not enable auto-merge, will merge directly after CI passes');
+                console.log(error.message);
+              }
+            }
+
+  # Fallback: Direct merge after CI passes if auto-merge isn't available
+  direct-merge:
+    runs-on: ubuntu-latest
+    needs: []
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: Wait for CI to complete
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            
+            // Wait for other checks to complete
+            let attempts = 0;
+            const maxAttempts = 30; // 5 minutes
+            
+            while (attempts < maxAttempts) {
+              const { data: checks } = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: pr.head.sha,
+              });
+              
+              const relevantChecks = checks.check_runs.filter(check => 
+                check.name !== 'Dependabot Auto-Merge' && 
+                check.name !== 'direct-merge'
+              );
+              
+              const allComplete = relevantChecks.every(check => 
+                check.status === 'completed'
+              );
+              
+              const allSuccessful = relevantChecks.every(check => 
+                check.conclusion === 'success' || check.conclusion === 'neutral'
+              );
+              
+              if (allComplete && allSuccessful) {
+                console.log('All checks passed, merging PR');
+                
+                await github.rest.pulls.merge({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.issue.number,
+                  merge_method: 'squash',
+                  commit_title: pr.title,
+                  commit_message: 'Automatically merged by Dependabot auto-merge workflow'
+                });
+                
+                return;
+              } else if (allComplete && !allSuccessful) {
+                console.log('Some checks failed, not merging');
+                return;
+              }
+              
+              console.log(`Attempt ${attempts + 1}/${maxAttempts}: Waiting for checks to complete...`);
+              await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
+              attempts++;
+            }
+            
+            console.log('Timeout waiting for checks to complete');

@@ -22,6 +22,7 @@ updates:
     labels:
       - "dependencies"
       - "python"
+      - "automerge"
     
   # Enable security updates for GitHub Actions
   - package-ecosystem: "github-actions"
@@ -42,3 +43,4 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+      - "automerge"
