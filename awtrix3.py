@@ -1,3 +1,5 @@
+import json
+
 import requests
 
 __version__ = "0.1.0"
@@ -50,7 +52,7 @@ class Awtrix3:
         # API returns plain text "OK", not JSON
         try:
             return response.json() if response.text.strip() else None
-        except ValueError:
+        except json.JSONDecodeError:
             return {"status": response.text.strip()} if response.text.strip() else None
 
     def play_sound(self, sound_name):
@@ -71,7 +73,7 @@ class Awtrix3:
         # API returns plain text "OK", not JSON
         try:
             return response.json() if response.text.strip() else None
-        except ValueError:
+        except json.JSONDecodeError:
             return {"status": response.text.strip()} if response.text.strip() else None
 
     def list_apps(self):

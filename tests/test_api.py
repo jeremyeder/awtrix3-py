@@ -91,18 +91,18 @@ class TestAPIResponses:
         assert result == apps_data
         mock_get.assert_called_once_with("http://192.168.1.128/api/loop", auth=None)
 
-    @patch("awtrix3.requests.delete")
-    def test_delete_app_success_response(self, mock_delete):
+    @patch("awtrix3.requests.post")
+    def test_delete_app_success_response(self, mock_post):
         """Test delete_app with success response."""
         mock_response = Mock()
-        mock_response.text = '{"status": "deleted", "app": "weather"}'
-        mock_response.json.return_value = {"status": "deleted", "app": "weather"}
-        mock_delete.return_value = mock_response
+        mock_response.text = "OK"
+        mock_response.json.side_effect = json.JSONDecodeError("No JSON", "", 0)
+        mock_post.return_value = mock_response
 
         result = self.client.delete_app("weather")
 
-        assert result == {"status": "deleted", "app": "weather"}
-        mock_delete.assert_called_once_with(
+        assert result == {"status": "OK"}
+        mock_post.assert_called_once_with(
             "http://192.168.1.128/api/custom", params={"name": "weather"}, auth=None
         )
 
@@ -254,16 +254,16 @@ class TestAPIEndpoints:
             auth=None,
         )
 
-    @patch("awtrix3.requests.delete")
-    def test_delete_app_endpoint(self, mock_delete):
+    @patch("awtrix3.requests.post")
+    def test_delete_app_endpoint(self, mock_post):
         """Test delete app endpoint URL and parameters."""
         mock_response = Mock()
         mock_response.text = ""
-        mock_delete.return_value = mock_response
+        mock_post.return_value = mock_response
 
         self.client.delete_app("test_app")
 
-        mock_delete.assert_called_once_with(
+        mock_post.assert_called_once_with(
             "http://test.local/api/custom", params={"name": "test_app"}, auth=None
         )
 
